@@ -639,7 +639,7 @@ function bgGrad(){
 async function loadBundle(){
   while (!window.LA_CORE) await new Promise(r => setTimeout(r, 10));
   let B = null;
-  for (const u of ['/data/amoc_translate_bundle.json', './amoc_translate_bundle.json']){
+  for (const u of ['../../data/amoc_translate_bundle.json', '/data/amoc_translate_bundle.json', './amoc_translate_bundle.json']){
     try { B = await window.LA_CORE.loadBundle(u); break; } catch(e){}
   }
   if (!B){

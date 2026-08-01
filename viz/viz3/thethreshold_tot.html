@@ -1126,7 +1126,7 @@ async function boot(){
   window.dispatchEvent(new Event('resize'));
   seedBokeh(); drawBokeh();
   let B = null;
-  try { B = await loadBundle('/data/amoc_translate_bundle.json'); }
+  try { B = await loadBundle(['../../data/amoc_translate_bundle.json', '/data/amoc_translate_bundle.json']); }
   catch (e){
     document.getElementById('load-error').style.display = 'block';
     console.error(e); return;

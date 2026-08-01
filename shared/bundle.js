@@ -7,11 +7,28 @@
  * anchors are computed from the bundle's own arrays (fidelity, Ch. 7).
  */
 
-/** Fetch + parse the bundle JSON. Throws on HTTP failure. */
+/**
+ * Fetch + parse the bundle JSON.
+ *
+ * Accepts a single URL (back-compat) OR an ordered list of candidate URLs: the
+ * first that fetches OK wins. This lets a page served from a project subpath
+ * (e.g. GitHub Pages at /amoc-thesis-translate/) try the correct RELATIVE path
+ * first (../../data/… from viz/vizN/) and fall back to the absolute dev-server
+ * path (/data/…) — one loader, every host. Throws only if EVERY candidate fails.
+ */
 export async function loadBundle(url = '/data/amoc_translate_bundle.json') {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Bundle fetch failed: ${res.status} ${res.statusText} (${url})`);
-  return res.json();
+  const candidates = Array.isArray(url) ? url : [url];
+  let lastErr;
+  for (const u of candidates) {
+    try {
+      const res = await fetch(u);
+      if (res.ok) return res.json();
+      lastErr = new Error(`Bundle fetch failed: ${res.status} ${res.statusText} (${u})`);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Bundle fetch failed: no candidates');
 }
 
 /**
