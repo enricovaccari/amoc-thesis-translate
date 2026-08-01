@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ==========================================================================
+© 2026 Enrico Vaccari — All rights reserved.
+MSc thesis research artefact ("Living Atlantic"), Tomorrow University (ToU).
+============================================================================
+
+PROVENANCE LEDGER (thesis Table 7.2) — CONDITION: C2+C3 combined, what the
+EXPERIMENTAL group sees. SCENE II — the latent plane TRAVELLED rather than
+displayed. Same 240 points, same data, same colour ramp and the IDENTICAL
+axis orientation as theengine-static.html (control): PC1 +right, PC2 +up,
+equal units on both axes.
+
+DISCLOSURE RULE (this scene): teach the viewer to read the instrument, never
+tell them the reading. Nothing on screen states that the path returns,
+cycles, repeats, or is seasonal; no month is named unusual; recurrent pairs
+are never marked or connected. Whatever structure a viewer notices, they
+notice bottom-up — in the motion, the accumulating cloud, and the texture.
+
+ELEMENT → SOURCE · PRINCIPLE · CLASSICAL/ML
+- The path              → trajectory_monthly.pc1/pc2 walked in order,
+                          April 2004 → March 2024 · P2 · ML (PCA latent
+                          trajectory). Motion between months is real easing
+                          between the true points — mean step 35.65 units,
+                          max 158.72 — the VARIATION in step size is the
+                          signal and is never normalised away.
+- Current-month marker  → filled amber (palette beacon), the same amber as
+                          Scene I's peak marker — one vocabulary across scenes.
+- Accumulating cloud    → every visited month remains, coloured by year with
+                          the SAME ramp as the control (deep → north →
+                          northHi). The cloud IS the record building up; it is
+                          never faded, capped or thinned — proximity of the
+                          path to its own past must stay perceptible.
+- Trailing line         → the interpolated path over roughly the last 18
+                          months, fading toward the tail, so direction of
+                          travel is readable.
+- Anomaly agitation     → anomalies.clusters (IsolationForest), normalized
+                          mean_anomaly_score per month · P3 · ML. Inside a
+                          flagged cluster the marker and its immediate trail
+                          jitter and scatter — caught bottom-up, no legend,
+                          no label, never named on screen.
+- Heartbeat sound       → trajectory_monthly.pc1 → pulse rate & fullness,
+                          min–max normalised over the record · P5 · same
+                          synthesis approach as Scene I. OFF BY DEFAULT;
+                          explicit toggle beside the play control.
+- Hover                 → the month of the nearest visited point, ONLY its
+                          date ("2010-08") — numbers/date only, no reading.
+- Shared context        → shared/context-engine.js, imported verbatim by both
+                          conditions; shared/intro-engine.js byte-identical
+                          per language (the anchor question is answered by
+                          NEITHER file).
+- Colours/fonts/bokeh   → shared/palette.js · non-informational scaffolding.
+NOT SHOWN (would break the comparison): the reconstructed vertical profile
+(linking the plane back to the column would add information C1 lacks),
+seasonal colours or month-of-year cues, marks on recurrent pairs, event
+markers or labels on anomalous months.
+=========================================================================== -->
+<title>The Engine Room — Experiential (C2+C3)</title>
+
+<style>
+/* === A. PALETTE (kept in sync with shared/palette.js — the module sets the
+       custom properties at boot; canvas code reads the module constants) === */
+:root{
+  --abyss:#010811;
+  --flow-north:#7fb4d9;
+  --flow-north-hi:#cfe8ff;
+  --return-deep:#24507a;
+  --excursion:#49b8a5;
+  --beacon:#ffb35c;
+  --ink:#e7f0f7;
+  --ink-soft:rgba(231,240,247,0.55);
+}
+
+/* === B. RESET + CANVAS === */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--abyss);color:var(--ink);
+  font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;overflow:hidden;cursor:none}
+canvas{display:block;position:absolute;inset:0}
+#scene{z-index:0}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:10}
+button{cursor:none}
+
+/* === C. TITLE (top-left, identity — same wordmark as Scene I) === */
+header{position:absolute;top:50px;left:50px}
+header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:28px;letter-spacing:12px;text-transform:uppercase}
+.scene-label{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:5px;opacity:.5;margin-top:10px}
+
+/* Operational hover hint — raised, with a very subtle breathing so it gently
+   invites exploration without grabbing attention (item 9). */
+#hover-hint{position:absolute;top:100px;left:50%;transform:translateX(-50%);max-width:440px;text-align:center;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  animation:hint-breathe 5.2s ease-in-out infinite}
+@keyframes hint-breathe{0%,100%{opacity:.28}50%{opacity:.52}}
+
+/* EN/IT toggle — UI chrome only: re-labels text, never changes any number.
+   Its top edge aligns with the centred context block (item 8). Above the
+   splash (z 60) so the language can be chosen on the landing screen. */
+#lang-toggle{position:absolute;top:36px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
+  padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:none;transition:.2s}
+#lang-toggle button:hover{background:rgba(255,255,255,.12)}
+#lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
+
+/* Optional emphasis switch (item 10) — OFF by default, mirrored in the
+   static condition; changes visual emphasis of existing points only. */
+#anom-toggle{position:absolute;top:80px;right:50px;pointer-events:auto;z-index:60;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
+  padding:6px 12px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:2px;cursor:none;transition:.2s}
+#anom-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
+#anom-toggle.on{border-color:rgba(255,179,92,.6);color:var(--beacon)}
+
+/* Background-cloud switch — default ON, mirrored in the static condition */
+#cloud-toggle{position:absolute;top:116px;right:50px;pointer-events:auto;z-index:60;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
+  padding:6px 12px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:2px;cursor:none;transition:.2s}
+#cloud-toggle:hover{border-color:rgba(127,180,217,.8)}
+#cloud-toggle.on{border-color:rgba(127,180,217,.6)}
+
+/* The anomaly timeline (right side): years × months, filled with playback —
+   nudged slightly left so the whole composition stays visually centred */
+#anom-strip{position:absolute;right:70px;top:50%;transform:translateY(-50%);pointer-events:auto;
+  display:none;background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:14px 16px}
+.strip-row{display:flex;align-items:center;gap:2px;margin:2px 0}
+.strip-year{font-family:ui-monospace,monospace;font-size:8px;letter-spacing:1px;opacity:.5;width:32px}
+.strip-cell{width:11px;height:11px;border:1px solid rgba(255,255,255,.08);display:inline-block}
+.strip-cell.void{border-color:transparent}
+.strip-cell.norm{background:rgba(127,180,217,.25)}
+.strip-cell.hl{outline:1.5px solid var(--beacon)}
+
+/* Shared context (describes + source) — ONE visual group, centred over the
+   composition; the language switch top edge aligns with it (item 8). */
+#context-top{position:absolute;top:36px;left:50%;transform:translateX(-50%);
+  width:min(560px,72vw);text-align:center;pointer-events:none}
+#context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
+  color:var(--ink-soft);letter-spacing:.4px}
+#context-top #source{margin-top:8px;font-family:ui-monospace,monospace;font-size:8.5px;
+  letter-spacing:1.2px;color:var(--ink-soft);opacity:.8}
+
+/* === D. READING FLOOR (bottom-right, permanent — shared/context-engine.js) === */
+.rail-box{background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:12px 14px;
+  font-size:10.5px;line-height:1.65}
+/* Reading floor — vertically centred on the timeline row, clear of the
+   viewport edge; width capped so it can never crop. */
+#reading-box{position:absolute;right:70px;bottom:60px;width:max-content;max-width:min(420px,30vw);
+  pointer-events:none}
+#reading-box .read-line{margin:5px 0;letter-spacing:.4px;font-size:9.5px;line-height:1.5;color:var(--ink-soft)}
+
+/* === E. CONTROLS (bottom-left): playback speed, Scene I styling === */
+#controls{position:absolute;left:40px;bottom:122px;display:none;flex-direction:column;gap:8px;pointer-events:auto}
+.ctrl-group{display:flex;align-items:center;gap:10px}
+.ctrl-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;width:58px}
+.ctrl-seg{display:flex;gap:4px}
+.ctrl-seg button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);
+  padding:4px 7px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;cursor:none;transition:.2s;min-width:30px}
+.ctrl-seg button:hover{border-color:var(--beacon)}
+.ctrl-seg button.active{background:var(--beacon);color:var(--abyss);border-color:var(--beacon);font-weight:700}
+
+/* === F. MONTH READOUT (bottom-left, beneath the controls — same type scale
+       as Scene I's "1031 M · 21.14 Sv" readout) === */
+#readouts{position:absolute;left:40px;bottom:24px;font-family:ui-monospace,monospace;display:none}
+.ro-item{position:relative;display:flex;flex-direction:column;align-items:flex-start}
+.ro-label{font-size:11px;letter-spacing:1px;white-space:nowrap;margin:0;padding:0}
+.ro-item .big{font-size:28px;color:var(--beacon);font-weight:bold;margin:7px 0 0;padding:0;line-height:1}
+/* Current-month indicator dot (item 6): a small amber presence with a slow,
+   gentle breathing — the audio beat additionally spikes its scale. */
+#beat-dot{position:absolute;left:-15px;top:2px;width:9px;height:9px;border-radius:50%;background:var(--beacon);
+  pointer-events:none;animation:dot-breathe 3.8s ease-in-out infinite}
+@keyframes dot-breathe{0%,100%{opacity:.18}50%{opacity:.5}}
+
+/* === G. TIME SLIDER (bottom-centre, Scene I styling) === */
+#time-wrap{position:absolute;bottom:84px;left:50%;transform:translateX(-50%);width:min(52vw,640px);text-align:center;pointer-events:auto;visibility:hidden}
+#time-track{display:flex;align-items:center;gap:12px}
+#time-start,#time-end{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;opacity:.45;white-space:nowrap}
+#time-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px}
+#play-toggle,#sound-toggle{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:var(--ink);
+  padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:2px;cursor:none;transition:.3s}
+#play-toggle:hover,#sound-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
+#sound-toggle.on{border-color:rgba(255,179,92,.6);color:var(--beacon)}
+#time-rail{position:relative;flex:1;display:flex;align-items:center}
+#time{-webkit-appearance:none;appearance:none;flex:1;width:100%;height:1px;background:rgba(255,255,255,0.3);outline:none}
+#time::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:none}
+
+/* Hover date — ONLY the month, nothing else */
+#hover{position:absolute;pointer-events:none;display:none;z-index:100;
+  background:rgba(4,16,30,.96);border:1px solid rgba(255,179,92,.5);
+  font-family:ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;color:var(--beacon);
+  padding:6px 10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+
+/* === H. CURSOR (minimal: dot + soft-following ring, every screen) === */
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+  will-change:transform;opacity:1;transition:opacity .3s}
+#cursor-dot{width:5px;height:5px;background:#fff}
+#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+  transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s,width .2s,height .2s}
+
+#load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
+
+/* Ownership credit — centred, lifted off the bottom edge, clear of the
+   readouts (left) and reading floor (right) */
+#credit{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:55;pointer-events:none;
+  font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--ink);opacity:.4}
+
+/* === I. SPLASH (fully opaque, its own bokeh layer — Scene I identity) === */
+#splash{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%);
+  pointer-events:auto;transition:opacity 1.2s;text-align:center;overflow:hidden}
+#bokeh{position:absolute;inset:0;z-index:-1;display:block}
+#splash h2,#splash .splash-scene,#splash .splash-click{position:relative;z-index:1}
+#splash h2{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;text-transform:uppercase;
+  font-size:clamp(38px,6vw,72px);letter-spacing:.35em;text-indent:.35em}
+#splash .splash-scene{margin-top:26px;font-size:14px;letter-spacing:8px;text-indent:8px;opacity:.6;text-transform:uppercase}
+#splash .splash-click{margin-top:70px;font-size:11px;letter-spacing:4px;text-indent:4px;color:var(--beacon);
+  text-transform:uppercase;animation:splash-blink 2.6s ease-in-out infinite}
+@keyframes splash-blink{0%,100%{opacity:.25}50%{opacity:1}}
+body.pre-start #ui{opacity:0}
+#ui{transition:opacity 1.2s}
+
+/* === J. SHARED INTRO (screen 2 — shared/intro-engine.js; opaque so the
+       visualization stays hidden until the participant continues) === */
+#intro-screen{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
+  text-align:center;background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
+#intro-screen .panel{max-width:560px;padding:0 32px}
+#intro-screen h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;
+  letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
+#intro-screen p{font-size:13px;line-height:1.9;color:var(--ink-soft);margin:0 0 18px}
+#intro-screen p.anchor-question{color:var(--ink);border:1px solid rgba(255,255,255,.14);
+  padding:18px 22px;margin:30px 0;line-height:1.9}
+#intro-screen button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);
+  color:var(--ink);padding:13px 30px;font-family:ui-monospace,monospace;font-size:11px;
+  letter-spacing:3px;text-transform:uppercase;cursor:none;transition:.3s;margin-top:8px}
+#intro-screen button:hover{background:rgba(255,255,255,.12)}
+</style>
+</head>
+
+<body class="pre-start">
+<canvas id="scene"></canvas>
+<div id="hover"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<div id="splash">
+  <canvas id="bokeh"></canvas>
+  <h2>Living Atlantic</h2>
+  <div class="splash-scene" id="splash-scene">Scene II &mdash; The Engine Room</div>
+  <div class="splash-click" id="splash-click">Click anywhere to start exploring</div>
+</div>
+
+<!-- Screen 2: the shared narrative intro (shared/intro-engine.js) — identical
+     in every condition; only what follows it differs. -->
+<div id="intro-screen"><div class="panel" id="intro-screen-panel"></div></div>
+
+<div id="lang-toggle">
+  <button id="lang-en" class="active">EN</button>
+  <button id="lang-it">IT</button>
+</div>
+<button id="anom-toggle" type="button"></button>
+<button id="cloud-toggle" type="button" class="on"></button>
+
+<div id="ui">
+  <header>
+    <h1>Living Atlantic</h1>
+    <div class="scene-label" id="scene-label">SCENE II &mdash; THE ENGINE ROOM &middot; EXPERIENTIAL</div>
+  </header>
+
+  <div id="hover-hint"></div>
+
+  <div id="context-top">
+    <div id="describes"></div>
+    <div id="source"></div>
+  </div>
+
+  <div id="controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label" id="lbl-speed">SPEED</span>
+      <div class="ctrl-seg" id="speed-seg">
+        <button data-speed="0.5">&frac12;&times;</button>
+        <button data-speed="1" class="active">1&times;</button>
+        <button data-speed="2">2&times;</button>
+        <button data-speed="3">3&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="readouts">
+    <div class="ro-item">
+      <span class="ro-label"><span id="beat-dot"></span><span id="lbl-month">CURRENT MONTH</span></span>
+      <span class="big" id="month-big">&mdash;</span>
+    </div>
+  </div>
+
+  <div id="time-wrap">
+    <div id="time-track">
+      <span id="time-start">&mdash;</span>
+      <div id="time-rail">
+        <input type="range" id="time" min="0" max="239" value="0" step="1">
+      </div>
+      <span id="time-end">&mdash;</span>
+    </div>
+    <div id="time-row">
+      <button id="play-toggle">&#10074;&#10074; PAUSE &amp; SCRUB</button>
+      <button id="sound-toggle"></button>
+    </div>
+  </div>
+
+  <div id="anom-strip"></div>
+
+  <div id="reading-box" class="rail-box"></div>
+
+  <div id="load-error"></div>
+</div>
+
+<div id="credit">&copy; 2026 Enrico Vaccari &middot; MSc Thesis &middot; Tomorrow University</div>
+
+<script type="module">
+/* === DATA-DRIVEN LOGIC ===
+   Every on-screen value is traceable to amoc_translate_bundle.json:
+   - Position: trajectory_monthly.pc1/pc2 (equal units, PC1 +right, PC2 +up —
+     the IDENTICAL orientation as theengine-static.html).
+   - Colour:   position in the record → deep → north → northHi ramp (palette).
+   - Agitation: anomalies.clusters mean_anomaly_score, normalised (P3).
+   - Audio:    pc1(t), min–max normalised → pulse rate & fullness (P5).
+   - Labels:   trajectory_monthly.time; variance shares from pca.var_explained. */
+import { loadBundle } from '../../shared/bundle.js';
+import { COL, INK, FONT } from '../../shared/palette.js';
+import { introHTML, anchorQuestionHTML } from '../../shared/intro-engine.js';
+import { sourceHTML, describesHTML, readingLines, helpContent } from '../../shared/context-engine.js';
+import { mountSceneFrame } from '../../shared/scene-frame.js';
+
+// Persistent driving question + "?" help panel — the SAME module, the SAME two
+// strings as the static condition (shared/scene-frame.js). Hidden until screen
+// 3; the question is already on view inside the intro panel before that.
+// (Named sceneFrame — `frame` is already this file's animation-frame counter.)
+const sceneFrame = mountSceneFrame();
+
+/* ============================== i18n ======================================
+   Labels only — the toggle never touches a number. Language resolution:
+   URL ?lang=en|it > stored choice > DEFAULT_LANG (same as every scene). */
+const STR = {
+en: {
+  doc_title:   'The Engine Room — Experiential (C2+C3)',
+  splash_scene:'Scene II — The Engine Room',
+  splash_click:'Click anywhere to start exploring',
+  scene_label: 'SCENE II &mdash; THE ENGINE ROOM &middot; EXPERIENTIAL',
+  hover_hint:  'HOVER ANY MONTH TO READ ITS DATE',
+  month_label: 'CURRENT MONTH',
+  speed:       'SPEED',
+  pause:       '&#10074;&#10074; PAUSE &amp; SCRUB',
+  resume:      '&#9654; RESUME AUTO',
+  sound_off:   '&#9834; SOUND: OFF',
+  sound_on:    '&#9834; SOUND: ON',
+  emph_off:    '&#10022; HIGHLIGHT ANOMALIES: OFF',
+  emph_on:     '&#10022; HIGHLIGHT ANOMALIES: ON',
+  cloud_on:    '&#9702; Show temporal cloud: ON',
+  cloud_off:   '&#9702; Show temporal cloud: OFF',
+  ctr_tip:     'Central state',
+  axis_pc1:    'PC1 · {v1}% OF VARIANCE',
+  axis_pc2:    'PC2 · {v2}% OF VARIANCE',
+  load_error:  'BUNDLE NOT FOUND<br>run <b>npm run dev</b><br>(data expected at /data/amoc_translate_bundle.json)',
+  months: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+           'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'],
+},
+it: {
+  doc_title:   'Il Motore — Esperienziale (C2+C3)',
+  splash_scene:'Scena II — Il Motore',
+  splash_click:'Clicca ovunque per iniziare a esplorare',
+  scene_label: 'SCENA II &mdash; IL MOTORE &middot; ESPERIENZIALE',
+  hover_hint:  'PASSA IL CURSORE SU UN MESE PER LEGGERNE LA DATA',
+  month_label: 'MESE CORRENTE',
+  speed:       'VELOCIT&Agrave;',
+  pause:       '&#10074;&#10074; PAUSA &amp; SCORRI',
+  resume:      '&#9654; RIPRENDI AUTO',
+  sound_off:   '&#9834; AUDIO: OFF',
+  sound_on:    '&#9834; AUDIO: ON',
+  emph_off:    '&#10022; EVIDENZIA ANOMALIE: OFF',
+  emph_on:     '&#10022; EVIDENZIA ANOMALIE: ON',
+  cloud_on:    '&#9702; Mostra nuvola temporale: ON',
+  cloud_off:   '&#9702; Mostra nuvola temporale: OFF',
+  ctr_tip:     'Stato centrale',
+  axis_pc1:    'PC1 · {v1}% DELLA VARIANZA',
+  axis_pc2:    'PC2 · {v2}% DELLA VARIANZA',
+  load_error:  'BUNDLE NON TROVATO<br>esegui <b>npm run dev</b><br>(dati attesi in /data/amoc_translate_bundle.json)',
+  months: ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+           'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'],
+},
+};
+const DEFAULT_LANG = 'en';
+const urlLang = new URLSearchParams(location.search).get('lang');
+let lang = (urlLang === 'en' || urlLang === 'it') ? urlLang
+         : (localStorage.getItem('la-lang') === 'it' ? 'it' : DEFAULT_LANG);
+function T(key, vars){
+  let s = (STR[lang] && STR[lang][key]) ?? STR.en[key] ?? key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+function fmtMonth(ym){                            // "2004-04" → "APRIL 2004" / "APRILE 2004"
+  const [y, m] = ym.split('-');
+  return T('months')[+m - 1] + ' ' + y;
+}
+
+/* ------------------------------------------------- the year colour ramp ----
+   IDENTICAL to the control file: deep → north → northHi from the shared
+   palette, perceptually ordered, not a rainbow. */
+const hexRgb = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+const RAMP = [hexRgb(COL.deep), hexRgb(COL.north), hexRgb(COL.northHi)];
+function rampColor(t){
+  const seg = t <= 0.5 ? [RAMP[0], RAMP[1], t * 2] : [RAMP[1], RAMP[2], (t - 0.5) * 2];
+  const c = seg[0].map((v, i) => Math.round(v + (seg[1][i] - v) * seg[2]));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* ONE anomaly colour language, everywhere. Level = the TRUE per-month
+   IsolationForest score from anomalies.clusters (0 = none, 1 = record
+   maximum), never a spatial proxy. Cool blue neutral (0) → warm amber
+   (0.4) → orange (0.7) → soft muted red (1). Smooth interpolation, no
+   thresholds. IDENTICAL in static, experiential and enhanced renderings. */
+const ANOM_STOPS = [
+  [0.0, hexRgb(COL.north)],                        // cool blue neutral
+  [0.4, hexRgb(COL.beacon)],                       // warm amber (palette beacon)
+  [0.7, hexRgb('#ff8a3d')],                        // orange
+  [1.0, hexRgb('#c65747')],                        // soft muted red
+];
+function anomColor(t){
+  t = Math.max(0, Math.min(1, t));
+  let k = 0;
+  while (k < ANOM_STOPS.length - 2 && t > ANOM_STOPS[k + 1][0]) k++;
+  const [p0, a] = ANOM_STOPS[k], [p1, b] = ANOM_STOPS[k + 1];
+  const f = (t - p0) / (p1 - p0);
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;
+}
+
+/* ============================== state ==================================== */
+let TRAJ = null, N = 0, dataLoaded = false;
+let CLOUD = null, N5 = 0;                          // manifold_cloud.pc — finer temporal stride
+let ctr1 = 0, ctr2 = 0;                            // cloud centroid (computed, never typed)
+let cloudEnergy = null;                            // per-cloud-point glow energy (progressive cloud)
+let pc1min = 0, pc1max = 1;                        // audio normalisation (min–max over the record)
+let anomIntensity = null;                          // per-month agitation level (0..1)
+let emphOn = false;                                // highlight switch — OFF by default
+let cloudShow = true;                              // background-cloud switch — ON by default
+let hlMonth = -1;                                  // month hovered in the anomaly strip
+let stripCells = null, stripVisited = -1;          // the right-hand anomaly timeline
+let W = 0, H = 0;
+let tFloat = 0;                                    // continuous time (months)
+let playing = true;
+let speedMul = 1;                                  // playback speed only — never the data
+let frame = 0;
+let beatEnv = 0, nextBeatT = 0;                    // shared heartbeat clock (visual + audio)
+const TRAIL_MONTHS = 18;                           // the trailing line spans ~the last 18 months of path
+
+const cv = document.getElementById('scene');
+const g  = cv.getContext('2d');
+const mouse = { x: -100, y: -100 };
+const timeEl = document.getElementById('time');
+const hoverEl = document.getElementById('hover');
+
+/* --------------------------------------------------------------- layout ----
+   EQUAL UNITS on both axes: one scale s (px per latent unit) serves x and y,
+   chosen so the padded data cloud fits the free space between the header
+   band and the control band. ORIENTATION (rule 4): PC1 +right, PC2 +up —
+   identical to the control file. */
+let fit = null;
+function computeFit(){
+  if (!CLOUD) return;
+  // SQUARE plotting region, each axis fit to its own padded data range (the
+  // convention of the reference latent-space figure): the cloud fills the
+  // square instead of collapsing into a horizontal band; coordinates are
+  // never altered. The static file computes the IDENTICAL mapping from the
+  // same arrays, so both conditions share one frame of reference.
+  let pxMin = Infinity, pxMax = -Infinity, pyMin = Infinity, pyMax = -Infinity;
+  for (let i = 0; i < N5; i++){
+    const a = CLOUD.pc1[i], b = CLOUD.pc2[i];
+    if (a < pxMin) pxMin = a; if (a > pxMax) pxMax = a;
+    if (b < pyMin) pyMin = b; if (b > pyMax) pyMax = b;
+  }
+  const padX = (pxMax - pxMin) * 0.04, padY = (pyMax - pyMin) * 0.04;
+  const x0 = pxMin - padX, x1 = pxMax + padX;
+  const y0 = pyMin - padY, y1 = pyMax + padY;
+  const mL = 70, mR = 280, mT = 140, mB = 170;     // slightly larger scatter; right margin clears the timeline
+  const side = Math.min(W - mL - mR, H - mT - mB); // square plotting region
+  const sx = side / (x1 - x0);                     // per-axis scale (reference convention)
+  const sy = side / (y1 - y0);
+  const ox = mL + ((W - mL - mR) - side) / 2;
+  const oy = mT + ((H - mT - mB) - side) / 2;
+  fit = { sx, sy, x0, x1, y0, y1, ox, oy, side };
+}
+const SX = (p) => fit.ox + (p - fit.x0) * fit.sx;
+const SY = (p) => fit.oy + (fit.y1 - p) * fit.sy;
+
+/* ---- TRUE anomaly levels, FROM THE BUNDLE ---------------------------------
+   Monthly level = anomIntensity[i] (anomalies.clusters, normalised — the
+   same score Scene I uses). The cloud carries no time array, so each
+   sample's month is reconstructed from the RAPID span
+   (meta.time_axes.rapid_daily_span, effective stride ≈ 2.5 days):
+   point 0 → 2004-04, point 2919 → 2024-03, every point a real month.
+   No spatial proxy: distance from the centroid is NOT anomaly. */
+let cloudMonthIdx = null;
+function buildCloudMonthIdx(meta){
+  const span = meta.time_axes.rapid_daily_span;
+  const tA = new Date(span[0]).getTime(), tB = new Date(span[1]).getTime();
+  const [Y0, M0] = TRAJ.time[0].split('-').map(Number);
+  cloudMonthIdx = new Int32Array(N5);
+  for (let i = 0; i < N5; i++){
+    const d = new Date(tA + (i / (N5 - 1)) * (tB - tA));
+    const mi = (d.getUTCFullYear() - Y0) * 12 + (d.getUTCMonth() + 1 - M0);
+    cloudMonthIdx[i] = Math.max(0, Math.min(N - 1, mi));
+  }
+}
+const lvlCloud = (i) => anomIntensity ? anomIntensity[cloudMonthIdx[i]] : 0;
+
+/* Month → cloud-point range: the finer samples are chronological over the
+   same record, so month m owns indices [m, m+1) · N5/N. */
+function cloudRangeOf(m){
+  const a = Math.floor(m * N5 / N);
+  const b = Math.min(N5, Math.floor((m + 1) * N5 / N));
+  return [a, b];
+}
+/* (Each finer sample's month comes from the date reconstruction above —
+   see buildCloudMonthIdx / lvlCloud.) */
+
+/* ---- the anomaly timeline (right side): years × months ------------------
+   One block per month of the record: normal visited months in a dim cool
+   style, months the IsolationForest flagged in the warm anomaly colour.
+   Fills progressively with playback; hover links both ways with the latent
+   plane (block ↔ point). Shows the SAME per-month flags the plane shows —
+   no new information. */
+let stripHlCur = -1;
+function buildStrip(){
+  const wrap = document.getElementById('anom-strip');
+  const yA = +TRAJ.time[0].slice(0, 4), yB = +TRAJ.time[N - 1].slice(0, 4);
+  let html = '';
+  for (let yr = yA; yr <= yB; yr++){
+    html += `<div class="strip-row"><span class="strip-year">${yr}</span>`;
+    for (let m = 1; m <= 12; m++){
+      const iso = yr + '-' + String(m).padStart(2, '0');
+      const idx = TRAJ.time.indexOf(iso);
+      html += idx < 0
+        ? '<span class="strip-cell void"></span>'
+        : `<span class="strip-cell" data-i="${idx}"></span>`;
+    }
+    html += '</div>';
+  }
+  wrap.innerHTML = html;
+  stripCells = new Array(N).fill(null);
+  wrap.querySelectorAll('.strip-cell[data-i]').forEach(el => {
+    const i = +el.dataset.i;
+    stripCells[i] = el;
+    el.addEventListener('mouseenter', () => { hlMonth = i; });   // block → latent point
+    el.addEventListener('mouseleave', () => { if (hlMonth === i) hlMonth = -1; });
+  });
+  stripVisited = -1;
+}
+function updateStrip(visited){
+  if (!stripCells || visited === stripVisited) return;
+  for (let i = 0; i < N; i++){
+    const el = stripCells[i]; if (!el) continue;
+    if (i > visited){
+      el.classList.remove('norm', 'anom'); el.style.background = '';
+      continue;
+    }
+    const lv = anomIntensity ? anomIntensity[i] : 0;
+    if (lv > 0){
+      el.classList.add('anom'); el.classList.remove('norm');
+      el.style.background = anomColor(0.55 + 0.45 * lv);
+    } else {
+      el.classList.add('norm'); el.classList.remove('anom');
+      el.style.background = '';
+    }
+  }
+  stripVisited = visited;
+}
+function setStripHl(i){                            // latent point → block
+  if (i === stripHlCur || !stripCells) return;
+  if (stripHlCur >= 0 && stripCells[stripHlCur]) stripCells[stripHlCur].classList.remove('hl');
+  if (i >= 0 && stripCells[i]) stripCells[i].classList.add('hl');
+  stripHlCur = i;
+}
+
+/* ------------------------------------------------------------- position ----
+   Real motion between months: ease along each true segment (smoothstep on
+   the fractional month). Big jumps sweep fast, small steps drift — the
+   variation in step size is the signal and is left untouched. */
+function posAt(t){
+  const i0 = Math.floor(t), i1 = Math.min(i0 + 1, N - 1), f = t - i0;
+  const e = f * f * (3 - 2 * f);
+  return [
+    TRAJ.pc1[i0] + (TRAJ.pc1[i1] - TRAJ.pc1[i0]) * e,
+    TRAJ.pc2[i0] + (TRAJ.pc2[i1] - TRAJ.pc2[i0]) * e,
+  ];
+}
+
+/* ------------------------------------------------------- anomaly layer -----
+   P3 (ML: IsolationForest). Per-month agitation from anomalies.clusters:
+   normalized mean_anomaly_score while inside a flagged cluster, 0 elsewhere
+   (strongest cluster → 1.0 — the ranking comes from the bundle, never
+   typed). Expressed ONLY as jitter/scatter of the marker and its immediate
+   trail — caught bottom-up, never labelled, never named. */
+function buildAnomalyIntensity(ANOM){
+  const out = new Float64Array(N);
+  if (!ANOM || !ANOM.clusters || !ANOM.clusters.length) return out;
+  const maxScore = Math.max(...ANOM.clusters.map(c => c.mean_anomaly_score));
+  const [Y0, M0] = TRAJ.time[0].split('-').map(Number);
+  const monthIdx = iso => {
+    const [y, m] = iso.split('-').map(Number);
+    return (y - Y0) * 12 + (m - M0);
+  };
+  for (const c of ANOM.clusters){
+    const a = Math.max(0, monthIdx(c.t_start)), b = Math.min(N - 1, monthIdx(c.t_end));
+    const level = c.mean_anomaly_score / maxScore;
+    for (let i = a; i <= b; i++) out[i] = Math.max(out[i], level);
+  }
+  return out;
+}
+function anomAt(t){
+  if (!anomIntensity) return 0;
+  const i0 = Math.floor(t), i1 = Math.min(i0 + 1, anomIntensity.length - 1), f = t - i0;
+  return anomIntensity[i0] * (1 - f) + anomIntensity[i1] * f;
+}
+
+/* ------------------------------------------------------------ rendering --- */
+function draw(){
+  if (!dataLoaded) return;
+  frame++;
+  g.clearRect(0, 0, W, H);
+
+  // Environmental gradient — same family as Scene I's abyss, radially calm
+  const bgr = g.createRadialGradient(W/2, H*0.42, 0, W/2, H*0.42, Math.max(W, H)*0.75);
+  bgr.addColorStop(0, '#0a2136'); bgr.addColorStop(0.45, '#061524'); bgr.addColorStop(1, '#010811');
+  g.fillStyle = bgr; g.fillRect(0, 0, W, H);
+
+  // Playback clock — the slider mirrors it; scrubbing pauses it
+  if (playing){
+    tFloat += 0.05 * speedMul;
+    if (tFloat > N - 1) tFloat = 0;                // record complete → the cloud rebuilds
+    timeEl.value = Math.round(tFloat);
+  }
+  document.getElementById('month-big').textContent = fmtMonth(TRAJ.time[Math.round(tFloat)]);
+
+  const turb = anomAt(tFloat);                     // agitation level (0 in calm months)
+  const visited = Math.floor(tFloat);
+
+  // --- LATENT AXES THROUGH THE CENTROID — identical position and
+  //     opacity as the static condition; labels carry the variance shares
+  //     from pca.var_explained (already on screen in the reading floor).
+  g.strokeStyle = 'rgba(231,240,247,0.25)';
+  g.lineWidth = 1;
+  g.beginPath(); g.moveTo(SX(fit.x0), SY(ctr2)); g.lineTo(SX(fit.x1), SY(ctr2)); g.stroke();
+  g.beginPath(); g.moveTo(SX(ctr1), SY(fit.y1)); g.lineTo(SX(ctr1), SY(fit.y0)); g.stroke();
+  g.font = '9px ui-monospace,monospace';
+  g.fillStyle = 'rgba(231,240,247,0.35)';
+  g.textAlign = 'right';
+  g.fillText(T('axis_pc1', { v1: V1PCT }), SX(fit.x1) - 4, SY(ctr2) - 6);
+  g.save();
+  g.translate(SX(ctr1) + 12, SY(fit.y1) + 8);
+  g.rotate(-Math.PI / 2); g.textAlign = 'right';
+  g.fillText(T('axis_pc2', { v2: V2PCT }), 0, 0);
+  g.restore();
+  g.textAlign = 'left';
+
+  // --- THE PROGRESSIVE CLOUD: the finer samples of each month APPEAR as
+  //     the month is visited — brightening on arrival through an energy
+  //     envelope (no popping), then fading back to a low resting opacity
+  //     and REMAINING. The system gradually reveals the space it has
+  //     explored. Colour = each sample's anomaly level (its month's
+  //     normalised IsolationForest score) through the topographic ramp —
+  //     identical colouring to the static condition's full cloud.
+  if (cloudEnergy && cloudShow){
+    for (let i = 0; i < N5; i++) cloudEnergy[i] *= 0.95;      // smooth fade-back
+    const [ca, cb] = cloudRangeOf(Math.min(visited, N - 1));
+    for (let i = ca; i < cb; i++) cloudEnergy[i] += (1 - cloudEnergy[i]) * 0.10;
+    for (let i = 0; i < cb; i++){
+      const e = cloudEnergy[i];
+      g.fillStyle = anomColor(lvlCloud(i));                   // TRUE month level
+      g.globalAlpha = Math.min(0.78, 0.28 + e * 0.5);
+      g.beginPath();
+      g.arc(SX(CLOUD.pc1[i]), SY(CLOUD.pc2[i]), 1.4 + e * 1.2, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  // --- THE CENTROID: bright, soft, luminous — COOLER than the amber marker;
+  //     computed from manifold_cloud at load. Hover names it neutrally.
+  {
+    const cx = SX(ctr1), cy = SY(ctr2);
+    const cg = g.createRadialGradient(cx, cy, 0, cx, cy, 12);
+    cg.addColorStop(0, 'rgba(207,232,255,0.7)');
+    cg.addColorStop(1, 'rgba(207,232,255,0)');
+    g.fillStyle = cg;
+    g.beginPath(); g.arc(cx, cy, 12, 0, Math.PI * 2); g.fill();
+    g.fillStyle = COL.northHi;
+    g.beginPath(); g.arc(cx, cy, 3, 0, Math.PI * 2); g.fill();
+  }
+
+  // --- THE ACCUMULATING MONTHLY RECORD ----------------------------------
+  // Every visited month REMAINS — larger, brighter, foreground — coloured
+  // by its TRUE anomaly level, glow riding on it: flagged months burn
+  // visibly warmer. Never faded, capped or thinned.
+  for (let i = 0; i <= visited; i++){
+    const lv = anomIntensity ? anomIntensity[i] : 0;
+    const col = anomColor(lv);
+    const x = SX(TRAJ.pc1[i]), y = SY(TRAJ.pc2[i]);
+    g.fillStyle = col;
+    g.globalAlpha = 0.2 + lv * 0.25;
+    g.beginPath(); g.arc(x, y, 5 + lv * 2, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 0.95;
+    g.beginPath(); g.arc(x, y, 3, 0, Math.PI * 2); g.fill();
+  }
+  g.globalAlpha = 1;
+
+  // timeline ↔ latent linking: ring the month hovered in the anomaly strip
+  if (hlMonth >= 0){
+    g.strokeStyle = COL.beacon;
+    g.lineWidth = 1.6;
+    g.globalAlpha = 0.9;
+    g.beginPath();
+    g.arc(SX(TRAJ.pc1[hlMonth]), SY(TRAJ.pc2[hlMonth]), 7, 0, Math.PI * 2);
+    g.stroke();
+    g.globalAlpha = 1;
+  }
+  updateStrip(visited);
+
+  // --- OPTIONAL EMPHASIS (item 10, mirrored in the static condition):
+  //     soft pulsing rings on flagged months already on screen. Perception
+  //     of existing points only — no labels, scores, dates or reading.
+  // ONLY the months the IsolationForest flagged receive emphasis; all other
+  // points stay untouched (the field itself is never highlighted).
+  if (emphOn && anomIntensity){
+    g.lineWidth = 1.4;
+    const pulse = 0.62 + 0.38 * Math.sin(frame * 0.045);
+    for (let i = 0; i <= visited; i++){
+      const lv = anomIntensity[i];
+      if (!lv) continue;
+      g.strokeStyle = anomColor(0.8 + 0.2 * lv);   // warm accent, always
+      g.globalAlpha = (0.30 + 0.45 * lv) * pulse;
+      g.beginPath();
+      g.arc(SX(TRAJ.pc1[i]), SY(TRAJ.pc2[i]), 5.5, 0, Math.PI * 2);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+
+  // --- THE TRAILING LINE (item 4) ----------------------------------------
+  // The interpolated path over ~the last 18 months — the REAL chronological
+  // path only (no shortcuts, no artificial connections) — with a smooth
+  // opacity decay and a brighter head so direction of travel reads at a
+  // glance. Inside anomalous months the recent trail roughens (P3 texture).
+  const tTail = Math.max(0, tFloat - TRAIL_MONTHS);
+  const STEPS = 160;
+  let prev = null;
+  for (let k = 0; k <= STEPS; k++){
+    const tk = tTail + (tFloat - tTail) * (k / STEPS);
+    const [a, b] = posAt(tk);
+    let x = SX(a), y = SY(b);
+    const tb = anomAt(tk);
+    if (tb > 0){                                   // rougher texture on the agitated stretch
+      x += Math.sin(tk * 47.13 + frame * 0.11) * tb * 6;
+      y += Math.cos(tk * 61.71 + frame * 0.13) * tb * 6;
+    }
+    if (prev){
+      const f = k / STEPS;                         // 0 = tail, 1 = head
+      g.strokeStyle = COL.beacon;
+      g.globalAlpha = Math.pow(f, 1.4) * 0.7;
+      g.lineWidth = 0.8 + 2.2 * f;
+      g.beginPath(); g.moveTo(prev[0], prev[1]); g.lineTo(x, y); g.stroke();
+    }
+    prev = [x, y];
+  }
+  g.globalAlpha = 1;
+
+  // --- THE CURRENT MONTH — filled amber marker (~7px), Scene I's beacon.
+  //     Item 5: the halo BREATHES slowly, its rate and intensity riding on
+  //     pc1(t) (min–max normalised) — a redundant sensory encoding of PC1,
+  //     synchronised with the audio pulse via the shared beat clock.
+  const normP = (TRAJ.pc1[Math.round(tFloat)] - pc1min) / (pc1max - pc1min);
+  const breathe = 0.5 + 0.5 * Math.sin(performance.now() * 0.001 * (0.18 + 0.22 * normP) * Math.PI * 2);
+  const [pa, pb] = posAt(tFloat);
+  let mx = SX(pa), my = SY(pb);
+  if (turb > 0){                                   // agitated months shake — bottom-up, unnamed
+    mx += (Math.random() - 0.5) * turb * 16;
+    my += (Math.random() - 0.5) * turb * 16;
+  }
+  // item 8: stronger pulse, brighter halo — still on the shared PC1/audio
+  // beat clock (beatEnv), plus the slow pc1-linked breathing
+  g.fillStyle = COL.beacon;
+  g.globalAlpha = Math.min(0.6, 0.18 + 0.06 * normP + breathe * 0.09 + beatEnv * 0.3 + turb * 0.10);
+  g.beginPath(); g.arc(mx, my, 17 + breathe * 4 + beatEnv * 10 + turb * 6, 0, Math.PI * 2); g.fill();
+  g.globalAlpha = 1;
+  g.beginPath(); g.arc(mx, my, 7.5 + beatEnv * 2.5, 0, Math.PI * 2); g.fill();
+  // item 6: the audio beat additionally spikes the indicator dot's scale
+  // (its slow opacity breathing is CSS — see #beat-dot).
+  document.getElementById('beat-dot').style.transform = 'scale(' + (1 + beatEnv * 0.6).toFixed(2) + ')';
+
+  // brief scatter around the marker while agitated (rough texture, no words)
+  if (turb > 0.3){
+    g.fillStyle = COL.beacon;
+    const nS = Math.round(3 + turb * 6);
+    for (let k = 0; k < nS; k++){
+      const ang = Math.random() * Math.PI * 2;
+      const rad = 9 + Math.random() * 22 * turb;
+      g.globalAlpha = 0.14 + Math.random() * 0.3 * turb;
+      g.beginPath();
+      g.arc(mx + Math.cos(ang) * rad, my + Math.sin(ang) * rad, 0.8 + Math.random() * 1.4, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  updateHeartbeat();
+  updateHover();
+  requestAnimationFrame(draw);
+}
+
+/* ------------------------------------------------------------ hover --------
+   Hovering any visited point shows ONLY its month ("2010-08"). Nothing
+   else: no values, no reading. */
+function updateHover(){
+  if (!dataLoaded || document.body.classList.contains('pre-start')){ hoverEl.style.display = 'none'; return; }
+  // the centroid first: hovering it names it — descriptive wording only
+  {
+    const dx = SX(ctr1) - mouse.x, dy = SY(ctr2) - mouse.y;
+    if (dx * dx + dy * dy < 12 * 12){
+      hoverEl.textContent = T('ctr_tip');
+      hoverEl.style.display = 'block';
+      hoverEl.style.left = Math.min(W - 150, mouse.x + 18) + 'px';
+      hoverEl.style.top  = Math.max(12, mouse.y - 34) + 'px';
+      setStripHl(-1);
+      return;
+    }
+  }
+  const visited = Math.floor(tFloat);
+  let best = -1, bestD = 12 * 12;                  // 12 px pick radius
+  for (let i = 0; i <= visited; i++){
+    const dx = SX(TRAJ.pc1[i]) - mouse.x, dy = SY(TRAJ.pc2[i]) - mouse.y;
+    const d = dx * dx + dy * dy;
+    if (d < bestD){ bestD = d; best = i; }
+  }
+  setStripHl(best);                                // latent point → timeline block
+  if (best < 0){ hoverEl.style.display = 'none'; return; }
+  hoverEl.textContent = TRAJ.time[best];           // the date, exactly as recorded
+  hoverEl.style.display = 'block';
+  hoverEl.style.left = Math.min(W - 110, mouse.x + 18) + 'px';
+  hoverEl.style.top  = Math.max(12, mouse.y - 34) + 'px';
+}
+
+/* ------------------------------------------------------------- audio -------
+   P5 — sonification, OFF BY DEFAULT (unrequested audio is an accessibility
+   problem); the toggle sits beside the play control, one visible click.
+   pc1(t) → pulse rate & fullness, min–max normalised over the record — the
+   same synthesis approach as Scene I (heartbeat + marine bed). */
+let AC = null, osc = null, pulse = null, master = null, oceanGain = null;
+let audioOn = false;
+
+function initAudio(){                              // must be called from a user gesture
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain(); master.gain.value = 0.62;
+  master.connect(AC.destination);
+  osc = AC.createOscillator(); osc.type = 'sine'; osc.frequency.value = 60;
+  const osc2 = AC.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 120;
+  const partial = AC.createGain(); partial.gain.value = 0.35;
+  pulse = AC.createGain(); pulse.gain.value = 0;
+  osc.connect(pulse); osc2.connect(partial); partial.connect(pulse); pulse.connect(master);
+  osc.start(); osc2.start();
+  startOcean();
+}
+function startOcean(){
+  const len = AC.sampleRate * 4;
+  const buf = AC.createBuffer(1, len, AC.sampleRate);
+  const d = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < len; i++){
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.02 * w) / 1.02;
+    d[i] = last * 3.5;
+  }
+  const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380; lp.Q.value = 0.7;
+  oceanGain = AC.createGain(); oceanGain.gain.value = 0.06;
+  src.connect(lp); lp.connect(oceanGain); oceanGain.connect(master);
+  const swell = AC.createOscillator(); swell.frequency.value = 0.06;
+  const swellAmt = AC.createGain(); swellAmt.gain.value = 0.035;
+  swell.connect(swellAmt); swellAmt.connect(oceanGain.gain);
+  const breathe = AC.createOscillator(); breathe.frequency.value = 0.045;
+  const breatheAmt = AC.createGain(); breatheAmt.gain.value = 160;
+  breathe.connect(breatheAmt); breatheAmt.connect(lp.frequency);
+  const drone1 = AC.createOscillator(); drone1.type = 'sine';     drone1.frequency.value = 82;
+  const drone2 = AC.createOscillator(); drone2.type = 'triangle'; drone2.frequency.value = 82.4;
+  const droneGain = AC.createGain(); droneGain.gain.value = 0.012;
+  drone1.connect(droneGain); drone2.connect(droneGain); droneGain.connect(master);
+  src.start(); swell.start(); breathe.start(); drone1.start(); drone2.start();
+}
+// One clock for eye and ear: each beat spikes the marker halo and fires the
+// audible pulse at the same instant. Rate & fullness ∝ pc1(t), normalised.
+function updateHeartbeat(){
+  beatEnv *= 0.93;
+  const i = Math.round(tFloat);
+  const norm = (TRAJ.pc1[i] - pc1min) / (pc1max - pc1min);
+  const bpm = 40 + norm * 40;
+  const nowS = performance.now() / 1000;
+  if (nowS < nextBeatT) return;
+  nextBeatT = nowS + 60 / bpm;
+  beatEnv = 1;
+  if (audioOn && AC && AC.state === 'running'){
+    const now = AC.currentTime;
+    const fullness = 0.5 + norm * 0.8;
+    pulse.gain.cancelScheduledValues(now);
+    pulse.gain.setTargetAtTime(fullness, now, 0.015);
+    pulse.gain.setTargetAtTime(0, now + 0.09, 0.12);
+    osc.frequency.setTargetAtTime(55 + norm * 20, now, 0.05);
+    if (oceanGain){
+      oceanGain.gain.setTargetAtTime(0.06 + 0.05 * norm, now, 0.04);
+      oceanGain.gain.setTargetAtTime(0.06, now + 0.15, 0.35);
+    }
+  }
+}
+function refreshSoundBtn(){
+  const b = document.getElementById('sound-toggle');
+  b.innerHTML = audioOn ? T('sound_on') : T('sound_off');
+  b.classList.toggle('on', audioOn);
+}
+function setSound(on){
+  audioOn = on;
+  refreshSoundBtn();
+  if (on){ initAudio(); if (AC.state === 'suspended') AC.resume(); }
+  else if (AC && AC.state === 'running') AC.suspend();
+}
+document.getElementById('sound-toggle').onclick = () => setSound(!audioOn);
+
+/* ------------------------------------------------------------- wiring ----- */
+function setPlaying(p){
+  playing = p;
+  document.getElementById('play-toggle').innerHTML = p ? T('pause') : T('resume');
+}
+document.getElementById('play-toggle').onclick = () => setPlaying(!playing);
+timeEl.addEventListener('input', () => {           // scrubbing switches to manual mode
+  setPlaying(false);
+  tFloat = +timeEl.value;
+});
+document.getElementById('speed-seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  speedMul = +b.dataset.speed;                     // playback speed only — never the data
+  document.querySelectorAll('#speed-seg button').forEach(x => x.classList.toggle('active', x === b));
+});
+// The highlight switch changes visual emphasis of flagged points only (a
+// display state); every underlying number is untouched.
+document.getElementById('anom-toggle').addEventListener('click', () => {
+  emphOn = !emphOn;
+  document.getElementById('anom-toggle').classList.toggle('on', emphOn);
+  document.getElementById('anom-toggle').innerHTML = T(emphOn ? 'emph_on' : 'emph_off');
+});
+// The background-cloud switch (default ON) shows/hides the finer samples.
+document.getElementById('cloud-toggle').addEventListener('click', () => {
+  cloudShow = !cloudShow;
+  document.getElementById('cloud-toggle').classList.toggle('on', cloudShow);
+  document.getElementById('cloud-toggle').innerHTML = T(cloudShow ? 'cloud_on' : 'cloud_off');
+});
+
+/* Custom cursor: instant dot + soft-following ring (every screen). */
+const curDot = document.getElementById('cursor-dot');
+const curRing = document.getElementById('cursor-ring');
+function moveCursor(x, y){
+  curDot.style.transform  = `translate(${x - 2.5}px,${y - 2.5}px)`;
+  curRing.style.transform = `translate(${x - 15}px,${y - 15}px)`;
+}
+moveCursor(innerWidth / 2, innerHeight / 2);
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  moveCursor(e.clientX, e.clientY);
+});
+
+/* Landing bokeh — the same animated identity as Scene I's landing screen. */
+const bokehCv = document.getElementById('bokeh');
+const bg = bokehCv.getContext('2d');
+let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
+function resizeBokeh(){
+  const dpr = window.devicePixelRatio || 1;
+  bokehW = innerWidth; bokehH = innerHeight;
+  bokehCv.width = Math.round(bokehW * dpr); bokehCv.height = Math.round(bokehH * dpr);
+  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
+  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!bokehSpots.length) seedBokeh();
+}
+function seedBokeh(){
+  bokehSpots = [];
+  for (let i = 0; i < 26; i++) bokehSpots.push({
+    x: Math.random() * bokehW, y: Math.random() * bokehH,
+    r: 24 + Math.random() * 100,
+    vx: (Math.random() - 0.5) * 0.25, vy: -0.05 - Math.random() * 0.22,
+    a: 0.05 + Math.random() * 0.13,
+    hue: Math.random() < 0.55 ? '127,180,217' : '255,179,92'
+  });
+}
+function drawBokeh(){
+  if (!bokehOn) return;
+  bg.clearRect(0, 0, bokehW, bokehH);
+  bg.globalCompositeOperation = 'lighter';
+  for (const sp of bokehSpots){
+    sp.x += sp.vx; sp.y += sp.vy;
+    if (sp.y + sp.r < 0)       sp.y = bokehH + sp.r;
+    if (sp.x < -sp.r)          sp.x = bokehW + sp.r;
+    if (sp.x > bokehW + sp.r)  sp.x = -sp.r;
+    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+    bg.fillStyle = grd;
+    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); bg.fill();
+  }
+  bg.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(drawBokeh);
+}
+
+/* Screen sequence (identical in every condition): landing splash → shared
+   narrative intro (shared/intro-engine.js) → the visualization. */
+document.getElementById('splash').addEventListener('click', () => {
+  const s = document.getElementById('splash');
+  s.style.opacity = '0';
+  s.style.pointerEvents = 'none';
+  setTimeout(() => { s.style.display = 'none'; bokehOn = false; }, 1300);
+  const scr = document.getElementById('intro-screen');
+  scr.querySelector('.panel').innerHTML = introHTML(lang);
+  scr.style.display = 'flex';
+}, { once: true });
+document.getElementById('intro-screen').addEventListener('click', e => {
+  if (e.target.id !== 'intro-continue') return;
+  document.getElementById('intro-screen').style.display = 'none';
+  startVisualization();
+});
+function startVisualization(){
+  document.body.classList.remove('pre-start');
+  document.getElementById('controls').style.display = 'flex';
+  document.getElementById('readouts').style.display = 'block';
+  document.getElementById('time-wrap').style.visibility = 'visible';
+  document.getElementById('anom-strip').style.display = 'block';
+  sceneFrame.show(true);                            // the question stays for the whole scene
+  setPlaying(true);
+}
+
+/* Language toggle: re-labels every string; numbers and encodings untouched. */
+function applyLang(l){
+  lang = l;
+  localStorage.setItem('la-lang', l);
+  document.documentElement.lang = l;
+  document.title = T('doc_title');
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-it').classList.toggle('active', l === 'it');
+  document.getElementById('splash-scene').innerHTML = T('splash_scene');
+  document.getElementById('splash-click').innerHTML = T('splash_click');
+  document.getElementById('scene-label').innerHTML  = T('scene_label');
+  document.getElementById('hover-hint').innerHTML   = T('hover_hint');
+  document.getElementById('lbl-month').innerHTML    = T('month_label');
+  document.getElementById('lbl-speed').innerHTML    = T('speed');
+  document.getElementById('load-error').innerHTML   = T('load_error');
+  document.getElementById('anom-toggle').innerHTML  = T(emphOn ? 'emph_on' : 'emph_off');
+  document.getElementById('cloud-toggle').innerHTML = T(cloudShow ? 'cloud_on' : 'cloud_off');
+  // Shared context (shared/context-engine.js) — imported verbatim by both
+  // conditions; {n}/{y0}/{y1}/{v1}/{v2} filled from the bundle, never typed.
+  document.getElementById('source').innerHTML = sourceHTML(l);
+  if (dataLoaded){
+    document.getElementById('describes').innerHTML = describesHTML(l, {
+      n: N, y0: TRAJ.time[0].slice(0, 4), y1: TRAJ.time[N - 1].slice(0, 4),
+    });
+    document.getElementById('reading-box').innerHTML =
+      readingLines(l, { v1: V1PCT, v2: V2PCT })
+        .map(line => '<div class="read-line">' + line + '</div>').join('');
+    document.getElementById('time-start').textContent = fmtMonth(TRAJ.time[0]);
+    document.getElementById('time-end').textContent   = fmtMonth(TRAJ.time[N - 1]);
+  }
+  const introScr = document.getElementById('intro-screen');
+  if (introScr.style.display === 'flex')
+    introScr.querySelector('.panel').innerHTML = introHTML(l);
+  // Persistent question + "?" help — both strings come from the shared modules,
+  // so both are byte-identical to the static condition.
+  sceneFrame.render(l, anchorQuestionHTML(l), helpContent(l));
+  setPlaying(playing);
+  refreshSoundBtn();
+}
+document.getElementById('lang-en').onclick = () => applyLang('en');
+document.getElementById('lang-it').onclick = () => applyLang('it');
+
+window.addEventListener('resize', () => {
+  const dpr = window.devicePixelRatio || 1;
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  computeFit();
+  resizeBokeh();
+});
+
+/* ---------------------------------------------------------------- boot ---- */
+let V1PCT = '', V2PCT = '';
+async function boot(){
+  applyLang(lang);
+  window.dispatchEvent(new Event('resize'));
+  seedBokeh(); drawBokeh();
+  let B = null;
+  try { B = await loadBundle('/data/amoc_translate_bundle.json'); }
+  catch (e){
+    document.getElementById('load-error').style.display = 'block';
+    console.error(e);
+    return;
+  }
+  TRAJ = B.trajectory_monthly;
+  N = TRAJ.time.length;
+  CLOUD = B.manifold_cloud.pc;                          // the same space, finer stride
+  N5 = CLOUD.pc1.length;
+  cloudEnergy = new Float32Array(N5);
+  // Centroid of the finer cloud — computed here, never typed (item 2).
+  ctr1 = 0; ctr2 = 0;
+  for (let i = 0; i < N5; i++){ ctr1 += CLOUD.pc1[i]; ctr2 += CLOUD.pc2[i]; }
+  ctr1 /= N5; ctr2 /= N5;
+  pc1min = Math.min(...TRAJ.pc1); pc1max = Math.max(...TRAJ.pc1);
+  anomIntensity = buildAnomalyIntensity(B.anomalies);
+  buildCloudMonthIdx(B.meta);                           // cloud months from the RAPID span
+  buildStrip();                                         // the anomaly timeline (right side)
+  V1PCT = (B.pca.var_explained[0] * 100).toFixed(1);   // from the bundle, never typed
+  V2PCT = (B.pca.var_explained[1] * 100).toFixed(1);
+  timeEl.max = N - 1;                                   // UI driven by the bundle
+  computeFit();
+  dataLoaded = true;
+  applyLang(lang);                                      // context lines need bundle vars
+  requestAnimationFrame(draw);
+}
+boot();
+</script>
+</body>
+</html>

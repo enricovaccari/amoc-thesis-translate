@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ==========================================================================
+© 2026 Enrico Vaccari — All rights reserved.
+MSc thesis research artefact ("Living Atlantic"), Tomorrow University (ToU).
+=========================================================================== -->
+<title>The Engine Room — Static (C1)</title>
+
+<!-- ============================================================================
+PROVENANCE LEDGER (seed of thesis Table 7.2) — every visible element and its source
+==============================================================================
+CONDITION: C1 — static conventional (control group), SCENE II. The canonical
+idiom exactly as an ML-climate paper would publish the latent plane: a scatter
+of the 240 monthly states, coloured by year, with a colour bar. Same bundle,
+same data, same orientation as the experiential file; the added perceptual
+channels (motion, accumulation, sound, interactivity) are removed, the data
+is not (§7.2.2, Tversky 2019).
+
+SCREEN SEQUENCE (identical in both conditions): 1. landing screen (title +
+language switch) → 2. shared intro with the anchor question
+(shared/intro-engine.js) → 3. the condition's own representation. Only
+screen 3 differs.
+
+VISIBLE ELEMENT                          → SOURCE
+- Landing + intro screens                → shared/intro-engine.js — imported verbatim by BOTH
+                                           conditions (per language); no data content. The
+                                           anchor question (state recurrence) is answered by
+                                           NEITHER file — that is the quantity measured.
+- Shared context blocks                  → shared/context-engine.js — imported verbatim by
+                                           BOTH conditions. NON-QUANTITATIVE FRAMING: data
+                                           provenance (RAPID-MOCHA / Moat et al. 2026), one
+                                           plain-language descriptive line, and the reading
+                                           floor (dot = month, near = alike, axes = the two
+                                           main patterns, position has no unit). They teach
+                                           the INSTRUMENT, never the reading (no recurrence,
+                                           no cycles, no seasons, no unusual months).
+- The 240 points                         → trajectory_monthly.pc1 / .pc2, one point per
+                                           month, x = pc1 (+right), y = pc2 (+up). EQUAL
+                                           UNITS on both axes (a circle looks like a
+                                           circle); the sign orientation is IDENTICAL in
+                                           the experiential file.
+- Faint background cloud                 → manifold_cloud.pc.pc1/.pc2 — the same latent
+                                           space at finer temporal stride, ~15% opacity,
+                                           same year ramp, SAME domain and orientation as
+                                           the experiential file (the plot domain is the
+                                           FULL cloud extent, so nothing is clipped).
+                                           Unlabelled: texture, not a readout.
+- Soft cool point + thin axes            → the centroid of manifold_cloud (computed at
+                                           load, never typed) and PC1/PC2 axes through it
+                                           at ~25% opacity — shared analytical
+                                           scaffolding, identical in both conditions,
+                                           never labelled or explained.
+- Optional "highlight anomalies" toggle  → anomalies.clusters levels already in the
+                                           bundle; when ON, anomalous months gain a soft
+                                           pulsing ring coloured by the continuous
+                                           topographic anomaly ramp. No labels, scores,
+                                           dates or interpretation — identical switch in
+                                           both conditions.
+- Colour of each point + colour bar      → month's position in the record (time fraction),
+                                           through the perceptually ordered ramp deep →
+                                           north → northHi from shared/palette.js. NOT a
+                                           rainbow; year ticks derive from
+                                           trajectory_monthly.time.
+- Axis labels "PC1 · {v}% OF VARIANCE"   → pca.var_explained (never typed).
+- Title line (240 months, date range)    → trajectory_monthly.time (length + endpoints).
+- Grid, ticks, frame, zero lines         → extent of the data; same publication style as
+                                           the Scene I static plot.
+- Colours, fonts, grid style             → shared/palette.js — NON-INFORMATIONAL
+                                           scaffolding: semantic but non-quantitative,
+                                           the conditions of legibility (Table 7.2).
+- EN/IT language toggle                  → UI chrome only: re-labels text, never changes
+                                           any number or encoding. Default language is
+                                           configurable per link: ?lang=en / ?lang=it
+                                           (URL param > stored choice > DEFAULT_LANG).
+NOT SHOWN (defines C2/C3, not C1): playback of the path, the accumulating
+cloud, the trailing line, hover dates, anomaly agitation, sound. A reader can
+decode any single month's position; they cannot SEE the path travel and pass
+close to where it has already been — that perceptual availability is exactly
+what the experimental condition adds and what the study measures. The figure's
+difficulty IS the control condition. STATIC: no animation, no hover, no line
+connecting the points, no annotation, no highlighted years, no month labels.
+============================================================================ -->
+
+<style>
+/* Palette custom properties are set at boot from shared/palette.js so the
+   colours have a single source of truth (non-informational scaffolding). */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--abyss,#010811);color:var(--ink,#e7f0f7)}
+/* Screens 2 and 3 share the landing screen's dark-blue radial gradient, so
+   the transition between screens is seamless (same visual identity). */
+body{font-family:var(--font-mono,monospace);cursor:none;
+  background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%) no-repeat fixed}
+button{cursor:none}
+
+/* Custom cursor — filled dot + soft-following ring, always visible on EVERY
+   screen (same identity as the experiential file). */
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+  will-change:transform;opacity:1;transition:opacity .3s}
+#cursor-dot{width:5px;height:5px;background:#fff}
+#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+  transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s}
+
+/* Ownership credit — visible on every screen; centred, lifted off the
+   bottom edge, clear of every other UI element */
+#credit{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:55;pointer-events:none;
+  font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink,#e7f0f7);opacity:.4}
+
+header{position:absolute;top:34px;left:40px;z-index:10}
+header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size:28px;
+  letter-spacing:12px;text-transform:uppercase}
+.scene-label{font-size:10px;letter-spacing:5px;opacity:.5;margin-top:10px}
+/* shared context: plain-language description + data provenance — ONE visual
+   group, centred over the composition (item 8); the language switch top edge
+   aligns with this block. */
+#context-center{position:fixed;top:34px;left:50%;transform:translateX(-50%);
+  width:min(560px,72vw);text-align:center;z-index:10;pointer-events:none}
+#describes{font-size:11px;line-height:1.75;color:var(--ink-soft,rgba(231,240,247,.55));letter-spacing:.4px}
+#source{margin-top:8px;font-size:8.5px;letter-spacing:1.2px;color:var(--ink-soft,rgba(231,240,247,.55));opacity:.8}
+
+/* --- EN/IT toggle (UI chrome only — never changes data) --- */
+#lang-toggle{position:fixed;top:36px;right:40px;z-index:60;display:flex;gap:6px}
+#lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.18);
+  color:var(--ink,#e7f0f7);padding:6px 12px;font-family:inherit;font-size:10px;
+  letter-spacing:2px;cursor:none;transition:.2s}
+#lang-toggle button:hover{background:rgba(255,255,255,.12)}
+#lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
+
+/* (No interactive controls in the static condition — language switch only.) */
+
+/* --- Screen 1: landing (same sequence and identity as the experiential file,
+       including the animated bokeh layer) --- */
+#splash{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;cursor:none;transition:opacity 1s;overflow:hidden;
+  background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
+#bokeh{position:absolute;inset:0;z-index:-1;display:block}
+#splash h2,#splash .splash-scene,#splash .splash-cta{position:relative;z-index:1}
+#splash h2{margin:0;font-family:var(--font-serif,serif);font-weight:400;text-transform:uppercase;
+  font-size:clamp(38px,6vw,72px);letter-spacing:.35em;text-indent:.35em}
+#splash .splash-scene{margin-top:26px;font-size:14px;letter-spacing:8px;text-indent:8px;opacity:.6;text-transform:uppercase}
+#splash .splash-cta{margin-top:70px;font-size:11px;letter-spacing:4px;text-indent:4px;color:var(--beacon,#ffb35c);
+  text-transform:uppercase;animation:splash-blink 2.6s ease-in-out infinite}
+@keyframes splash-blink{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* --- Screen 2: shared intro (identical in both conditions) --- */
+#intro{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:20}
+#intro .panel{max-width:560px;padding:0 32px;text-align:center}
+#intro h2{font-family:var(--font-serif,serif);font-weight:400;font-size:24px;
+  letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
+#intro p{font-size:13px;line-height:1.9;color:var(--ink-soft,rgba(231,240,247,.55));margin:0 0 18px}
+#intro p.anchor-question{color:var(--ink,#e7f0f7);border:1px solid rgba(255,255,255,.14);
+  padding:18px 22px;margin:30px 0;line-height:1.9}
+#intro button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);
+  color:var(--ink,#e7f0f7);padding:13px 30px;font-family:inherit;font-size:11px;
+  letter-spacing:3px;text-transform:uppercase;cursor:none;transition:.3s;margin-top:8px}
+#intro button:hover{background:rgba(255,255,255,.12)}
+
+/* --- Screen 3: the static figure (no interactivity). The latent plane uses
+       equal units on both axes, so the plot is WIDE, not square — allow the
+       SVG the full comfortable width. --- */
+#figure{position:absolute;inset:0;display:none;align-items:center;justify-content:center}
+#figure svg{max-width:min(1100px,96vw);max-height:92vh;width:100%;height:auto}
+
+#load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:12px;color:var(--beacon,#ffb35c);text-align:center;line-height:2;display:none;z-index:50}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Living Atlantic</h1>
+  <div class="scene-label" id="scene-label"></div>
+</header>
+
+<div id="context-center">
+  <div id="describes"></div>
+  <div id="source"></div>
+</div>
+
+<div id="lang-toggle">
+  <button id="lang-en" type="button" class="active">EN</button>
+  <button id="lang-it" type="button">IT</button>
+</div>
+<!-- No interactive controls in the static condition (language switch only). -->
+
+<div id="splash">
+  <canvas id="bokeh"></canvas>
+  <h2>Living Atlantic</h2>
+  <div class="splash-scene" id="splash-scene"></div>
+  <div class="splash-cta" id="splash-cta"></div>
+</div>
+
+<div id="intro"><div class="panel" id="intro-panel"></div></div>
+<div id="figure"></div>
+<div id="load-error"></div>
+
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+<div id="credit">&copy; 2026 Enrico Vaccari &middot; MSc Thesis &middot; Tomorrow University</div>
+
+<script type="module">
+import { loadBundle } from '../../shared/bundle.js';
+import { COL, INK, FONT } from '../../shared/palette.js';
+import { introHTML, anchorQuestionHTML } from '../../shared/intro-engine.js';
+import { sourceHTML, describesHTML, readingLines, helpContent } from '../../shared/context-engine.js';
+import { mountSceneFrame } from '../../shared/scene-frame.js';
+
+// Persistent driving question + "?" help panel — the SAME module, the SAME two
+// strings as the experiential condition (shared/scene-frame.js). Hidden until
+// screen 3; the question is already on view inside the intro panel before that.
+const frame = mountSceneFrame();
+
+// Palette → CSS custom properties (single source of truth for scaffolding).
+const rootStyle = document.documentElement.style;
+rootStyle.setProperty('--abyss', COL.abyss);
+rootStyle.setProperty('--beacon', COL.beacon);
+rootStyle.setProperty('--excursion', COL.excursion);
+rootStyle.setProperty('--ink', INK.ink);
+rootStyle.setProperty('--ink-soft', INK.inkSoft);
+rootStyle.setProperty('--font-mono', FONT.mono);
+rootStyle.setProperty('--font-serif', FONT.serif);
+
+/* ---------------------------------------------------------------- i18n ----
+   Labels only. The toggle NEVER touches a number: every value still comes
+   from the bundle through the same code path in both languages.
+   Language resolution (so the survey can hand out the right link):
+   URL ?lang=en|it  >  stored choice (localStorage)  >  DEFAULT_LANG. */
+const DEFAULT_LANG = 'en';
+const STR = {
+  en: {
+    doc_title:   'The Engine Room — Static (C1)',
+    scene_label: 'SCENE II — THE ENGINE ROOM &middot; STATIC',
+    splash_scene:'Scene II — The Engine Room',
+    splash_cta:  'View the latent map',
+    load_error:  'DATA BUNDLE NOT FOUND<br>expected at /data/amoc_translate_bundle.json — run <b>npm run dev</b>',
+    axis_pc1:    'PC1 &middot; {v1}% OF VARIANCE',
+    axis_pc2:    'PC2 &middot; {v2}% OF VARIANCE',
+    bar_label:   'Level of anomaly',
+    bar_sub:     'Isolation Forest',
+    leg_monthly: 'Large points: monthly states',
+    leg_cloud:   'Small points: underlying temporal cloud',
+    header_line: 'LATENT STATE OF THE ATLANTIC &middot; {n} MONTHS &middot; {t0} &ndash; {t1}',
+    ctr_tip:     'Central state',
+    months: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+             'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'],
+  },
+  it: {
+    doc_title:   'Il Motore — Statica (C1)',
+    scene_label: 'SCENA II — IL MOTORE &middot; STATICA',
+    splash_scene:'Scena II — Il Motore',
+    splash_cta:  'Osserva la mappa latente',
+    load_error:  'BUNDLE DATI NON TROVATO<br>atteso in /data/amoc_translate_bundle.json — esegui <b>npm run dev</b>',
+    axis_pc1:    'PC1 &middot; {v1}% DELLA VARIANZA',
+    axis_pc2:    'PC2 &middot; {v2}% DELLA VARIANZA',
+    bar_label:   'Livello di anomalia',
+    bar_sub:     'Isolation Forest',
+    leg_monthly: 'Punti grandi: stati mensili',
+    leg_cloud:   'Punti piccoli: nuvola temporale sottostante',
+    header_line: 'STATO LATENTE DELL&rsquo;ATLANTICO &middot; {n} MESI &middot; {t0} &ndash; {t1}',
+    ctr_tip:     'Stato centrale',
+    months: ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+             'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'],
+  },
+};
+const urlLang = new URLSearchParams(location.search).get('lang');
+let lang = (urlLang === 'en' || urlLang === 'it') ? urlLang
+         : (localStorage.getItem('la-lang') === 'it' ? 'it' : DEFAULT_LANG);
+function T(key, vars){
+  let s = (STR[lang] && STR[lang][key]) ?? STR.en[key] ?? key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+const fmtMonth = (ym) => {                       // "2004-04" → "APRIL 2004" / "APRILE 2004"
+  const [y, m] = ym.split('-');
+  return T('months')[+m - 1] + ' ' + y;
+};
+
+/* ------------------------------------------------- the year colour ramp ----
+   Perceptually ORDERED (dark → light), from the existing palette:
+   deep #24507a → north #7fb4d9 → northHi #cfe8ff. Not a rainbow. The SAME
+   three palette constants drive the ramp in the experiential file — one
+   visual vocabulary, two idioms. */
+const hexRgb = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+const RAMP = [hexRgb(COL.deep), hexRgb(COL.north), hexRgb(COL.northHi)];
+function rampColor(t){                            // t ∈ [0,1] = position in the record
+  const seg = t <= 0.5 ? [RAMP[0], RAMP[1], t * 2] : [RAMP[1], RAMP[2], (t - 0.5) * 2];
+  const c = seg[0].map((v, i) => Math.round(v + (seg[1][i] - v) * seg[2]));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* ONE anomaly colour language, everywhere. Level = the TRUE per-month
+   IsolationForest score from anomalies.clusters (0 = no anomaly, 1 = the
+   record maximum), never a spatial proxy. Ramp from the existing palette
+   family — cool blue neutral (0) → warm amber (0.4) → orange (0.7) → soft
+   muted red (1). Smooth interpolation, no thresholds, no categories.
+   IDENTICAL in the static, experiential and enhanced renderings. */
+const ANOM_STOPS = [
+  [0.0, hexRgb(COL.north)],                        // cool blue neutral
+  [0.4, hexRgb(COL.beacon)],                       // warm amber (palette beacon)
+  [0.7, hexRgb('#ff8a3d')],                        // orange
+  [1.0, hexRgb('#c65747')],                        // soft muted red
+];
+function anomColor(t){                             // t ∈ [0,1] = normalised anomaly level
+  t = Math.max(0, Math.min(1, t));
+  let k = 0;
+  while (k < ANOM_STOPS.length - 2 && t > ANOM_STOPS[k + 1][0]) k++;
+  const [p0, a] = ANOM_STOPS[k], [p1, b] = ANOM_STOPS[k + 1];
+  const f = (t - p0) / (p1 - p0);
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;
+}
+
+/* THE anomaly source: per-month level from anomalies.clusters — normalised
+   mean_anomaly_score inside a flagged cluster (1 = record maximum), 0
+   elsewhere. The SAME derivation as the experiential file and Scene I;
+   never typed, never a spatial proxy. */
+function monthAnomalyLevels(bundle){
+  const TRAJ = bundle.trajectory_monthly;
+  const ANOM = bundle.anomalies;
+  const n = TRAJ.time.length;
+  const out = new Float64Array(n);
+  if (!ANOM || !ANOM.clusters || !ANOM.clusters.length) return out;
+  const maxScore = Math.max(...ANOM.clusters.map(cl => cl.mean_anomaly_score));
+  const [Y0, M0] = TRAJ.time[0].split('-').map(Number);
+  const monthIdx = iso => {
+    const [y, m] = iso.split('-').map(Number);
+    return (y - Y0) * 12 + (m - M0);
+  };
+  for (const cl of ANOM.clusters){
+    const a = Math.max(0, monthIdx(cl.t_start)), b = Math.min(n - 1, monthIdx(cl.t_end));
+    const level = cl.mean_anomaly_score / maxScore;
+    for (let i = a; i <= b; i++) out[i] = Math.max(out[i], level);
+  }
+  return out;
+}
+
+function buildFigure(bundle){
+  const TRAJ = bundle.trajectory_monthly;
+  const N = TRAJ.time.length;
+  const CLOUD = bundle.manifold_cloud.pc;          // the same latent space, finer stride
+  const N5 = CLOUD.pc1.length;
+  const v1 = (bundle.pca.var_explained[0] * 100).toFixed(1);   // from the bundle, never typed
+  const v2 = (bundle.pca.var_explained[1] * 100).toFixed(1);
+
+  // Centroid of the finer cloud — computed here, never typed (item 2).
+  let c1 = 0, c2 = 0;
+  for (let i = 0; i < N5; i++){ c1 += CLOUD.pc1[i]; c2 += CLOUD.pc2[i]; }
+  c1 /= N5; c2 /= N5;
+
+  // ---- geometry: SQUARE plotting region, each axis fit to its own padded
+  // data range (the convention of the reference latent-space figure): the
+  // cloud fills the square instead of collapsing into a horizontal band, and
+  // the tick values stay true to the data — coordinates are never altered.
+  // The experiential file computes the IDENTICAL mapping from the same arrays.
+  let pxMin = Infinity, pxMax = -Infinity, pyMin = Infinity, pyMax = -Infinity;
+  for (let i = 0; i < N5; i++){
+    const a = CLOUD.pc1[i], b = CLOUD.pc2[i];
+    if (a < pxMin) pxMin = a; if (a > pxMax) pxMax = a;
+    if (b < pyMin) pyMin = b; if (b > pyMax) pyMax = b;
+  }
+  const padX = (pxMax - pxMin) * 0.04, padY = (pyMax - pyMin) * 0.04;
+  const x0 = pxMin - padX, x1 = pxMax + padX;
+  const y0 = pyMin - padY, y1 = pyMax + padY;
+  const plotW = 680;                               // square: plotH === plotW
+  const plotH = plotW;
+  const sx = plotW / (x1 - x0);                    // per-axis scale (reference convention)
+  const sy = plotH / (y1 - y0);
+  const M = { top: 76, left: 96 };                 // raised slightly; margins balanced
+  const barW = 12, barGap = 30;
+  const W = M.left + plotW + barGap + barW + 62;
+  const H = M.top + plotH + 148;
+
+  // ORIENTATION (rule 4): PC1 increases RIGHTWARD, PC2 increases UPWARD.
+  // The experiential file uses the identical mapping — verified explicitly.
+  const X = (p) => M.left + (p - x0) * sx;
+  const Y = (p) => M.top + (y1 - p) * sy;
+
+  // ---- TRUE anomaly levels, FROM THE BUNDLE -------------------------------
+  // Monthly: monthAnomalyLevels(bundle) — the normalised IsolationForest
+  // cluster scores from anomalies.clusters (0 = no anomaly, 1 = the record
+  // maximum) — the same anomaly score Scene I uses. Cloud samples carry no
+  // time array, so each point's month is reconstructed from the RAPID span
+  // (meta.time_axes.rapid_daily_span, effective stride ≈ 2.5 days):
+  // point 0 → 2004-04, point 2919 → 2024-03, every point a real month.
+  // No spatial proxy anywhere: distance from the centroid is NOT anomaly.
+  const LVL = monthAnomalyLevels(bundle);
+  const span0 = bundle.meta.time_axes.rapid_daily_span;
+  const tA = new Date(span0[0]).getTime(), tB = new Date(span0[1]).getTime();
+  const [Y0m, M0m] = TRAJ.time[0].split('-').map(Number);
+  const cloudMonth = (i) => {
+    const d = new Date(tA + (i / (N5 - 1)) * (tB - tA));
+    const mi = (d.getUTCFullYear() - Y0m) * 12 + (d.getUTCMonth() + 1 - M0m);
+    return Math.max(0, Math.min(N - 1, mi));
+  };
+  const lvlCloud = (i) => LVL[cloudMonth(i)];
+
+  const grid = 'rgba(231,240,247,0.10)';
+  const axis = 'rgba(231,240,247,0.35)';
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="Latent state of the Atlantic: PCA plane, one point per month" font-family="${FONT.mono.replace(/"/g, '&quot;')}">`;
+
+  // Very subtle water tint behind the panel (palette north at ~5% alpha):
+  // identical intent in every condition. Non-informational.
+  svg += `<rect x="${M.left}" y="${M.top}" width="${plotW}" height="${plotH}" fill="rgba(127,180,217,0.05)"/>`;
+
+  // ---- publication-style grid + axes (Scene I styling) --------------------
+  // tick values true to each axis's own range (reference-figure convention)
+  const xTicks = [];
+  for (let v = Math.ceil(x0 / 100) * 100; v <= x1; v += 100) xTicks.push(v);
+  const yTicks = [];
+  for (let v = Math.ceil(y0 / 20) * 20; v <= y1; v += 20) yTicks.push(v);
+
+  for (const v of yTicks){
+    svg += `<line x1="${M.left}" y1="${Y(v)}" x2="${M.left + plotW}" y2="${Y(v)}" stroke="${grid}" stroke-width="1"/>`;
+    svg += `<text x="${M.left - 12}" y="${Y(v) + 3.5}" fill="${INK.inkSoft}" font-size="10" text-anchor="end" letter-spacing="1">${v > 0 ? '+' + v : v}</text>`;
+  }
+  for (const v of xTicks){
+    svg += `<line x1="${X(v)}" y1="${M.top}" x2="${X(v)}" y2="${M.top + plotH}" stroke="${grid}" stroke-width="1"/>`;
+    svg += `<text x="${X(v)}" y="${M.top + plotH + 22}" fill="${INK.inkSoft}" font-size="10" text-anchor="middle" letter-spacing="1">${v > 0 ? '+' + v : v}</text>`;
+  }
+  // Latent axes THROUGH THE CENTROID (item 3) — thin, ~25% opacity, the
+  // identical position and opacity as the experiential file. Shared
+  // analytical scaffolding; never labelled beyond the PC1/PC2 axis titles.
+  const AXC = 'rgba(231,240,247,0.25)';
+  svg += `<line x1="${X(c1)}" y1="${M.top}" x2="${X(c1)}" y2="${M.top + plotH}" stroke="${AXC}" stroke-width="1"/>`;
+  svg += `<line x1="${M.left}" y1="${Y(c2)}" x2="${M.left + plotW}" y2="${Y(c2)}" stroke="${AXC}" stroke-width="1"/>`;
+  // panel frame
+  svg += `<rect x="${M.left}" y="${M.top}" width="${plotW}" height="${plotH}" fill="none" stroke="${axis}" stroke-width="1"/>`;
+
+  // axis titles — variance shares from pca.var_explained (never typed)
+  svg += `<text x="${M.left + plotW / 2}" y="${M.top + plotH + 48}" fill="${INK.inkSoft}" font-size="10" text-anchor="middle" letter-spacing="2">${T('axis_pc1', { v1 })}</text>`;
+  svg += `<text x="${M.left - 64}" y="${M.top + plotH / 2}" fill="${INK.inkSoft}" font-size="10" text-anchor="middle" letter-spacing="2" transform="rotate(-90 ${M.left - 64} ${M.top + plotH / 2})">${T('axis_pc2', { v2 })}</text>`;
+
+  // the shared reading floor (shared/context-engine.js — teaches the
+  // instrument; imported verbatim by both conditions), Scene I caption style
+  readingLines(lang, { v1, v2 }).forEach((line, li) => {
+    svg += `<text x="${M.left + plotW / 2}" y="${M.top + plotH + 70 + li * 16}" fill="${INK.inkSoft}" font-size="8.5" text-anchor="middle" letter-spacing="1" opacity="0.85">${line}</text>`;
+  });
+
+  // ---- the underlying temporal cloud: each sample coloured by its MONTH's
+  //      true anomaly level (date-reconstructed above) through the shared
+  //      ramp — a subtle atmospheric texture: cool blue haze in normal
+  //      periods, warmer regions where the flagged months lived. Small,
+  //      soft, perceptually secondary. Unlabelled — texture, not a readout.
+  svg += `<g id="cloud-layer" opacity="0.18">`;
+  for (let i = 0; i < N5; i++){
+    svg += `<circle cx="${X(CLOUD.pc1[i]).toFixed(1)}" cy="${Y(CLOUD.pc2[i]).toFixed(1)}" r="1.4" fill="${anomColor(lvlCloud(i))}"/>`;
+  }
+  svg += `</g>`;
+
+  // ---- the centroid: a bright, soft luminous point — hover names it with
+  //      neutral wording only ("Central state"), no claim of stability.
+  svg += `<defs><radialGradient id="cgl"><stop offset="0" stop-color="${COL.northHi}" stop-opacity="0.7"/><stop offset="1" stop-color="${COL.northHi}" stop-opacity="0"/></radialGradient></defs>`;
+  svg += `<g style="pointer-events:all"><title>${T('ctr_tip')}</title>`;
+  svg += `<circle cx="${X(c1).toFixed(2)}" cy="${Y(c2).toFixed(2)}" r="12" fill="url(#cgl)"/>`;
+  svg += `<circle cx="${X(c1).toFixed(2)}" cy="${Y(c2).toFixed(2)}" r="3" fill="${COL.northHi}"/></g>`;
+
+  // ---- the 240 monthly states — larger, brighter, foreground: colour-coded
+  //      by the TRUE per-month anomaly score, glow riding on it (no
+  //      connecting line, no annotation, no month labels) ------------------
+  for (let i = 0; i < N; i++){
+    const lv = LVL[i];
+    const col = anomColor(lv);
+    const cx = X(TRAJ.pc1[i]).toFixed(2), cy = Y(TRAJ.pc2[i]).toFixed(2);
+    svg += `<circle cx="${cx}" cy="${cy}" r="${(5 + lv * 2).toFixed(1)}" fill="${col}" fill-opacity="${(0.2 + lv * 0.25).toFixed(2)}"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="3" fill="${col}" fill-opacity="0.95"/>`;
+  }
+
+  // ---- colour bar: the continuous anomaly ramp (low at bottom, high at
+  //      top) — the same scale that colours every point — plus a small
+  //      neutral point-size legend. Sentence casing; no interpretation.
+  const barX = M.left + plotW + barGap, barY = M.top, barH = plotH;
+  svg += `<defs><linearGradient id="anomg" x1="0" y1="1" x2="0" y2="0">` +
+    ANOM_STOPS.map(([p, c]) => `<stop offset="${p}" stop-color="rgb(${c[0]},${c[1]},${c[2]})"/>`).join('') +
+    `</linearGradient></defs>`;
+  svg += `<rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" fill="url(#anomg)" stroke="${axis}" stroke-width="1"/>`;
+  svg += `<text x="${barX + barW / 2}" y="${barY - 26}" fill="${INK.inkSoft}" font-size="9" text-anchor="middle" letter-spacing="1">${T('bar_label')}</text>`;
+  svg += `<text x="${barX + barW / 2}" y="${barY - 13}" fill="${INK.inkSoft}" font-size="8" text-anchor="middle" letter-spacing="1" opacity="0.75">${T('bar_sub')}</text>`;
+  // point-size legend (neutral, sentence case)
+  const lgY = barY + barH + 24;
+  svg += `<circle cx="${barX + 4}" cy="${lgY}" r="3" fill="${COL.north}" fill-opacity="0.95"/>`;
+  svg += `<text x="${barX + 14}" y="${lgY + 3}" fill="${INK.inkSoft}" font-size="8.5">${T('leg_monthly')}</text>`;
+  svg += `<circle cx="${barX + 4}" cy="${lgY + 18}" r="1.4" fill="${COL.north}" fill-opacity="0.7"/>`;
+  svg += `<text x="${barX + 14}" y="${lgY + 21}" fill="${INK.inkSoft}" font-size="8.5">${T('leg_cloud')}</text>`;
+
+  // title line, same position and style as Scene I
+  svg += `<text x="${M.left}" y="${M.top - 22}" fill="${INK.inkSoft}" font-size="10" letter-spacing="2">${T('header_line', { n: N, t0: fmtMonth(TRAJ.time[0]), t1: fmtMonth(TRAJ.time[N - 1]) })}</text>`;
+
+  svg += `</svg>`;
+  document.getElementById('figure').innerHTML = svg;
+}
+
+let bundleRef = null;
+
+function applyLang(l){
+  lang = l;
+  localStorage.setItem('la-lang', l);
+  document.documentElement.lang = l;
+  document.title = T('doc_title').replace(/&mdash;/g, '—');
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-it').classList.toggle('active', l === 'it');
+  document.getElementById('scene-label').innerHTML = T('scene_label');
+  document.getElementById('splash-scene').innerHTML = T('splash_scene');
+  document.getElementById('splash-cta').innerHTML = T('splash_cta');
+  document.getElementById('load-error').innerHTML = T('load_error');
+  // Shared context (shared/context-engine.js) — imported verbatim by both
+  // conditions; {n}/{y0}/{y1} are filled from the bundle, never typed.
+  document.getElementById('source').innerHTML = sourceHTML(l);
+  if (bundleRef){
+    const TRAJ = bundleRef.trajectory_monthly;
+    document.getElementById('describes').innerHTML = describesHTML(l, {
+      n: TRAJ.time.length,
+      y0: TRAJ.time[0].slice(0, 4),
+      y1: TRAJ.time[TRAJ.time.length - 1].slice(0, 4),
+    });
+  }
+  // Screen 2 — imported verbatim; byte-identical to the experiential condition.
+  document.getElementById('intro-panel').innerHTML = introHTML(l);
+  // Persistent question + "?" help — both strings come from the shared modules,
+  // so both are byte-identical to the experiential condition.
+  frame.render(l, anchorQuestionHTML(l), helpContent(l));
+  if (bundleRef) buildFigure(bundleRef);             // re-label; numbers unchanged
+}
+// (No interactive controls in the static condition: the only switch is the
+//  language toggle. The static figure suggests no interaction.)
+
+// Custom cursor: the filled dot tracks instantly, the ring follows softly.
+const curDot = document.getElementById('cursor-dot');
+const curRing = document.getElementById('cursor-ring');
+function moveCursor(x, y){
+  curDot.style.transform  = `translate(${x - 2.5}px,${y - 2.5}px)`;
+  curRing.style.transform = `translate(${x - 15}px,${y - 15}px)`;
+}
+moveCursor(innerWidth / 2, innerHeight / 2);       // parked at centre until the first mousemove
+window.addEventListener('mousemove', (e) => moveCursor(e.clientX, e.clientY));
+
+// Landing bokeh — the same animated identity as the experiential file's
+// landing screen: soft, blurred, drifting light spots. Purely decorative
+// (non-informational); it stops the moment the splash is dismissed.
+const bokehCv = document.getElementById('bokeh');
+const bg = bokehCv.getContext('2d');
+let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
+function resizeBokeh(){
+  const dpr = window.devicePixelRatio || 1;
+  bokehW = innerWidth; bokehH = innerHeight;
+  bokehCv.width = Math.round(bokehW*dpr); bokehCv.height = Math.round(bokehH*dpr);
+  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
+  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!bokehSpots.length) seedBokeh();
+}
+function seedBokeh(){
+  bokehSpots = [];
+  for (let i = 0; i < 26; i++) bokehSpots.push({
+    x: Math.random()*bokehW, y: Math.random()*bokehH,
+    r: 24 + Math.random()*100,
+    vx: (Math.random()-0.5)*0.25, vy: -0.05 - Math.random()*0.22,
+    a: 0.05 + Math.random()*0.13,
+    hue: Math.random() < 0.55 ? '127,180,217' : '255,179,92'   // ocean blue / warm beacon
+  });
+}
+function drawBokeh(){
+  if (!bokehOn) return;
+  bg.clearRect(0, 0, bokehW, bokehH);
+  bg.globalCompositeOperation = 'lighter';
+  for (const sp of bokehSpots){
+    sp.x += sp.vx; sp.y += sp.vy;
+    if (sp.y + sp.r < 0)      sp.y = bokehH + sp.r;
+    if (sp.x < -sp.r)         sp.x = bokehW + sp.r;
+    if (sp.x > bokehW + sp.r) sp.x = -sp.r;
+    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+    bg.fillStyle = grd;
+    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI*2); bg.fill();
+  }
+  bg.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(drawBokeh);
+}
+window.addEventListener('resize', resizeBokeh);
+resizeBokeh();
+drawBokeh();
+
+// Screen sequence: landing → shared intro → the static figure.
+document.getElementById('splash').addEventListener('click', () => {
+  const sp = document.getElementById('splash');
+  sp.style.opacity = '0';
+  sp.style.pointerEvents = 'none';
+  setTimeout(() => { sp.style.display = 'none'; bokehOn = false; }, 1000);  // stop the intro layer
+  document.getElementById('intro').style.display = 'flex';
+}, { once: true });
+
+// Delegated so the intro button survives language re-renders.
+document.getElementById('intro-panel').addEventListener('click', (e) => {
+  if (e.target.id !== 'intro-continue') return;
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('figure').style.display = 'flex';
+  frame.show(true);                                  // the question stays for the whole scene
+});
+document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
+document.getElementById('lang-it').addEventListener('click', () => applyLang('it'));
+
+async function boot(){
+  applyLang(lang);
+  try {
+    bundleRef = await loadBundle('/data/amoc_translate_bundle.json');
+  } catch (e) {
+    document.getElementById('load-error').style.display = 'block';
+    console.error(e);
+    return;
+  }
+  applyLang(lang);                                   // context lines need bundle vars
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living Atlantic — Scene I</title>
+    <style>
+        :root {
+            --abyss: #04101e;          
+            --flow-north: #7fb4d9;     
+            --beacon: #ffb35c;         
+            --ink: #e7f0f7;            
+            --ink-dim: rgba(231,240,247,0.4);
+            --font-serif: Georgia, 'Times New Roman', serif;
+            --font-mono: ui-monospace, 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; }
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: var(--abyss);
+            color: var(--ink);
+            overflow: hidden;
+            cursor: none;
+        }
+
+        canvas { display: block; position: absolute; inset: 0; }
+
+        #ui-layer {
+            position: absolute; inset: 0; z-index: 10;
+            pointer-events: none;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: all 1.8s cubic-bezier(0.85, 0, 0.15, 1);
+            padding: 60px;
+        }
+
+        /* Spostamento UI dopo l'attivazione */
+        #ui-layer.docked { align-items: flex-start; justify-content: flex-start; }
+
+        header { text-align: center; transition: all 1.8s ease; }
+        #ui-layer.docked header { text-align: left; }
+
+        h1 {
+            font-family: var(--font-serif);
+            margin: 0; font-weight: 400;
+            font-size: 3.5rem; letter-spacing: 18px;
+            text-transform: uppercase;
+            transition: all 1.8s ease;
+        }
+
+        #ui-layer.docked h1 { font-size: 1.4rem; letter-spacing: 6px; }
+
+        .scene-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem; letter-spacing: 8px;
+            color: var(--ink-dim);
+            margin-top: 20px;
+            text-transform: uppercase;
+            transition: all 1.8s ease;
+        }
+
+        #ui-layer.docked .scene-label { font-size: 0.6rem; letter-spacing: 3px; color: var(--beacon); }
+
+        #intro-block {
+            font-family: var(--font-mono);
+            max-width: 600px; margin-top: 60px;
+            text-align: center; pointer-events: none;
+            transition: all 1s ease;
+        }
+
+        #ui-layer.docked #intro-block { opacity: 0; transform: translateY(40px); }
+
+        /* Testo in lowercase come richiesto */
+        .description { 
+            font-size: 0.85rem; 
+            line-height: 2; 
+            color: var(--ink-dim); 
+            margin-bottom: 50px; 
+            text-transform: lowercase; 
+        }
+
+        /* Testo arancione pulsante */
+        .click-anywhere {
+            color: var(--beacon);
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: softPulse 3s infinite ease-in-out;
+        }
+
+        @keyframes softPulse {
+            0%, 100% { opacity: 0.2; transform: scale(0.98); }
+            50% { opacity: 0.8; transform: scale(1); }
+        }
+
+        /* Modalità nascoste inizialmente */
+        #controls { 
+            display: flex; 
+            gap: 20px; 
+            pointer-events: auto; 
+            opacity: 0; 
+            transform: translateY(20px);
+            transition: all 1s 1s ease; /* Appare con ritardo dopo il dock */
+        }
+        #ui-layer.docked #controls { opacity: 1; transform: translateY(0); position: absolute; top: 60px; right: 60px; }
+
+        .mode-btn {
+            font-family: var(--font-mono);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--ink);
+            padding: 14px 28px; font-size: 0.7rem;
+            letter-spacing: 3px; cursor: pointer; transition: 0.4s;
+        }
+
+        .mode-btn:hover { border-color: var(--beacon); background: rgba(255, 179, 92, 0.1); }
+        .mode-btn.active { background: var(--ink); color: var(--abyss); border-color: var(--ink); font-weight: bold; }
+
+        #cursor-dot { position: fixed; width: 6px; height: 6px; background: var(--beacon); border-radius: 50%; pointer-events: none; z-index: 1000; transform: translate(-50%, -50%); }
+        #cursor-ring { position: fixed; width: 50px; height: 50px; border: 1px solid rgba(255, 179, 92, 0.2); border-radius: 50%; pointer-events: none; z-index: 1000; transform: translate(-50%, -50%); }
+    </style>
+</head>
+<body onclick="activateData()">
+
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="dataCanvas"></canvas>
+
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <div id="ui-layer">
+        <header>
+            <h1>Living Atlantic</h1>
+            <div class="scene-label">SCENE I — THE COLUMN</div>
+        </header>
+            
+        <div id="intro-block">
+            <div class="description">
+                the amoc moves as a vertical structure: warm water flowing north near the surface, 
+                colder water returning south in the deep. this is not a single current, 
+                but a massive column of water that balances our planet's heat.
+            </div>
+            <div class="click-anywhere">Click anywhere to start exploring</div>
+        </div>
+
+        <div id="controls">
+            <button class="mode-btn" onclick="setMode('C1', event)">C1: STATIC</button>
+            <button class="mode-btn" onclick="setMode('C2', event)">C2: DYNAMIC</button>
+            <button class="mode-btn" onclick="setMode('C3', event)">C3: EXPERIENTIAL</button>
+        </div>
+    </div>
+
+    <script>
+        const uiLayer = document.getElementById('ui-layer');
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let activeMode = null;
+        let isActivated = false;
+
+        // --- Particelle di Sfondo (Movimento Fluido) ---
+        let particles = [];
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<45; i++) {
+                particles.push({
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    r: Math.random() * 120 + 40,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    alpha: Math.random() * 0.12,
+                    phase: Math.random() * Math.PI * 2 // Per oscillazione fluida
+                });
+            }
+        }
+
+        function drawBackground() {
+            bgCtx.fillStyle = '#04101e';
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            
+            const time = Date.now() * 0.001;
+
+            particles.forEach(p => {
+                // Movimento base + leggera oscillazione sinusoidale
+                p.x += p.vx + Math.sin(time + p.phase) * 0.1;
+                p.y += p.vy + Math.cos(time + p.phase) * 0.1;
+
+                if(p.x < -150) p.x = bgCanvas.width + 150;
+                if(p.x > bgCanvas.width + 150) p.x = -150;
+                if(p.y < -150) p.y = bgCanvas.height + 150;
+                if(p.y > bgCanvas.height + 150) p.y = -150;
+
+                let grad = bgCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+                grad.addColorStop(0, `rgba(127, 180, 217, ${p.alpha})`);
+                grad.addColorStop(1, `rgba(127, 180, 217, 0)`);
+                bgCtx.fillStyle = grad;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(drawBackground);
+        }
+
+        // --- Audio Etereo ---
+        let audioCtx;
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            function createDrone(freq, vol) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                filter.type = 'lowpass';
+                filter.frequency.value = 350;
+                gain.gain.value = 0;
+                osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.setTargetAtTime(vol, audioCtx.currentTime, 3);
+            }
+            createDrone(55, 0.08); 
+            createDrone(82.41, 0.04); 
+        }
+
+        // --- Attivazione ---
+        function activateData() {
+            if(isActivated) return;
+            uiLayer.classList.add('docked');
+            initAudio();
+            isActivated = true;
+            // Impostiamo C1 come default all'attivazione
+            setTimeout(() => setMode('C1'), 1000); 
+        }
+
+        function setMode(mode, event) {
+            if(event) event.stopPropagation(); // Evita di re-attivare activateData
+            activeMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText.includes(mode)) btn.classList.add('active');
+            });
+            console.log("Active Mode:", mode);
+        }
+
+        // --- Cursore ---
+        const dot = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+        let mouseX = window.innerWidth/2, mouseY = window.innerHeight/2;
+        let ringX = mouseX, ringY = mouseY;
+
+        window.addEventListener('mousemove', e => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            dot.style.left = mouseX + 'px'; dot.style.top = mouseY + 'px';
+        });
+
+        function animateCursor() {
+            ringX += (mouseX - ringX) * 0.1;
+            ringY += (mouseY - ringY) * 0.1;
+            ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+
+        window.addEventListener('resize', () => {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        // Start
+        window.dispatchEvent(new Event('resize'));
+        animateCursor();
+        drawBackground();
+    </script>
+</body>
+</html>

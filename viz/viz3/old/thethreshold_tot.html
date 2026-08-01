@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ==========================================================================
+© 2026 Enrico Vaccari — All rights reserved.
+MSc thesis research artefact ("Living Atlantic"), Tomorrow University (ToU).
+============================================================================
+
+DEMO FILE — NOT ADMINISTERED. Scene III ("The Threshold") with all three
+conditions behind STATIC / DYNAMIC / EXPERIENTIAL buttons, same selector
+style and position as column_tot.html and theengine_tot.html. The study
+files are:
+  thethreshold-static.html        (C1 — control group)
+  thethreshold-experiential.html  (C2+C3 — experimental group)
+This file exists so the conditions can be compared side by side in one place.
+
+  C1 · STATIC       the paper idiom: three member time series on one panel,
+                    faint envelope band, grid, legend, axis labels. No
+                    motion, no hover, no annotation of any era.
+  C2 · DYNAMIC      the record travelled: playback runs 1993 → 2023, the
+                    three strands advance together (distinct weights — three
+                    voices), amber current-moment marker, model isolate
+                    toggles, three-value readout, speed / pause & scrub /
+                    time slider / replay.
+  C3 · EXPERIENTIAL adds P4 — the living medium: the fill between the strands
+                    churns and warms (cool→amber) with the real band width
+                    (upper − lower) per month; hover shows the month and the
+                    three model values; sound (OFF by default) roughens with
+                    the same width.
+
+Same bundle, same data, same member tints (positions on the shared blue
+ramp) and the same axis ranges in every condition. The disclosure rule of
+the study files applies here too: nothing on screen states WHEN the three
+reanalyses agree or disagree, no era is marked or shaded, no band width is
+ever printed, and no control auto-slows or flags any period.
+=========================================================================== -->
+<title>The Threshold — All Conditions (demo)</title>
+
+<style>
+:root{
+  --abyss:#010811;
+  --flow-north:#7fb4d9;
+  --flow-north-hi:#cfe8ff;
+  --return-deep:#24507a;
+  --excursion:#49b8a5;
+  --beacon:#ffb35c;
+  --ink:#e7f0f7;
+  --ink-soft:rgba(231,240,247,0.55);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--abyss);color:var(--ink);
+  font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;overflow:hidden;cursor:none}
+canvas{display:block;position:absolute;inset:0}
+#scene{z-index:0}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:10}
+button{cursor:none}
+
+header{position:absolute;top:50px;left:50px}
+header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:28px;letter-spacing:12px;text-transform:uppercase}
+.scene-label{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:5px;opacity:.5;margin-top:10px}
+
+#hover-hint{position:absolute;top:142px;left:50%;transform:translateX(-50%);max-width:600px;text-align:center;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;display:none;
+  animation:hint-breathe 5.2s ease-in-out infinite}
+@keyframes hint-breathe{0%,100%{opacity:.28}50%{opacity:.52}}
+
+/* Mode selector (top-right) — same button style and position as column_tot */
+#conditions{position:absolute;top:50px;right:50px;display:flex;align-items:center;gap:10px;pointer-events:auto}
+#howto{max-width:200px;margin-right:14px;text-align:right;font-size:10px;line-height:1.5;letter-spacing:.5px;opacity:.5;font-style:italic}
+#conditions button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,0.1);color:var(--ink);padding:10px 18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:none;transition:.3s}
+#conditions button.active{background:var(--ink);color:var(--abyss);font-weight:700}
+
+#lang-toggle{position:absolute;top:96px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
+  padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:none;transition:.2s}
+#lang-toggle button:hover{background:rgba(255,255,255,.12)}
+#lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
+
+#context-top{position:absolute;top:36px;left:50%;transform:translateX(-50%);
+  width:min(560px,60vw);text-align:center;pointer-events:none}
+#context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
+  color:var(--ink-soft);letter-spacing:.4px}
+#context-top #source{margin-top:8px;font-family:ui-monospace,monospace;font-size:8.5px;
+  letter-spacing:1.2px;color:var(--ink-soft);opacity:.8}
+
+.rail-box{background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:12px 14px;
+  font-size:10.5px;line-height:1.65}
+#reading-box{position:absolute;right:70px;bottom:60px;width:max-content;max-width:min(420px,30vw);
+  pointer-events:none}
+#reading-box .read-line{margin:5px 0;letter-spacing:.4px;font-size:9.5px;line-height:1.5;color:var(--ink-soft)}
+/* legend (C1 only — names which line is which model; C2/C3 use the toggles) */
+#legend-box{position:absolute;right:70px;bottom:225px;width:max-content;pointer-events:none;display:none}
+#legend-box .leg-title{font-size:9px;letter-spacing:1px;color:var(--ink-soft);margin-bottom:7px}
+#legend-box .leg-row{display:flex;align-items:center;gap:9px;margin:4px 0}
+#legend-box .leg-swatch{width:22px;height:2px}
+#legend-box .leg-name{font-size:9.5px;letter-spacing:1px;color:var(--ink-soft)}
+
+#controls{position:absolute;left:40px;bottom:150px;display:none;flex-direction:column;gap:9px;pointer-events:auto}
+.ctrl-group{display:flex;align-items:center;gap:10px}
+.ctrl-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;width:58px}
+.ctrl-seg{display:flex;gap:4px}
+.ctrl-seg button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);
+  padding:4px 7px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;cursor:none;transition:.2s;min-width:30px}
+.ctrl-seg button:hover{border-color:var(--beacon)}
+.ctrl-seg button.active{background:var(--beacon);color:var(--abyss);border-color:var(--beacon);font-weight:700}
+.model-seg{display:flex;gap:6px}
+.model-seg button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);
+  padding:4px 9px 5px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;cursor:none;transition:.2s;
+  border-bottom-width:2px}
+.model-seg button:hover{border-color:rgba(255,255,255,.4)}
+.model-seg button.off{opacity:.4}
+#aux-row{display:flex;gap:6px}
+#sound-toggle,#replay-toggle{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:var(--ink);
+  padding:5px 12px;font-family:inherit;font-size:9px;letter-spacing:2px;cursor:none;transition:.3s}
+#sound-toggle:hover,#replay-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
+#sound-toggle.on{border-color:rgba(255,179,92,.6);color:var(--beacon)}
+#model-group,#aux-group{display:none}
+
+#readouts{position:absolute;left:40px;bottom:24px;font-family:ui-monospace,monospace;display:none}
+.ro-item{position:relative;display:flex;flex-direction:column;align-items:flex-start}
+.ro-label{font-size:11px;letter-spacing:1px;white-space:nowrap;margin:0;padding:0}
+.ro-item .big{font-size:28px;color:var(--beacon);font-weight:bold;margin:7px 0 0;padding:0;line-height:1}
+#values-line{margin-top:9px;font-size:13px;letter-spacing:1px;white-space:nowrap}
+#values-line .vsep{opacity:.4;margin:0 6px}
+#values-line .vunit{color:var(--ink-soft);font-size:10px;margin-left:8px;letter-spacing:1.5px}
+#beat-dot{position:absolute;left:-15px;top:2px;width:9px;height:9px;border-radius:50%;background:var(--beacon);
+  pointer-events:none;animation:dot-breathe 3.8s ease-in-out infinite}
+@keyframes dot-breathe{0%,100%{opacity:.18}50%{opacity:.5}}
+
+#time-wrap{position:absolute;bottom:84px;left:50%;transform:translateX(-50%);width:min(52vw,640px);text-align:center;pointer-events:auto;visibility:hidden}
+#time-track{display:flex;align-items:center;gap:12px}
+#time-start,#time-end{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;opacity:.45;white-space:nowrap}
+#time-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px}
+#play-toggle{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:var(--ink);
+  padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:2px;cursor:none;transition:.3s}
+#play-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
+#time-rail{position:relative;flex:1;display:flex;align-items:center}
+#time{-webkit-appearance:none;appearance:none;flex:1;width:100%;height:1px;background:rgba(255,255,255,0.3);outline:none;cursor:none}
+#time::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:none}
+#time::-moz-range-thumb{width:12px;height:12px;border:none;border-radius:50%;background:#fff;cursor:none}
+
+#hover{position:absolute;pointer-events:none;display:none;z-index:100;
+  background:rgba(4,16,30,.96);border:1px solid rgba(255,179,92,.5);
+  font-family:ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;color:var(--beacon);
+  padding:6px 10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+  will-change:transform;opacity:1;transition:opacity .3s}
+#cursor-dot{width:5px;height:5px;background:#fff}
+#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+  transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s,width .2s,height .2s}
+
+#load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
+
+#credit{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:55;pointer-events:none;
+  font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--ink);opacity:.4}
+
+#splash{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%);
+  pointer-events:auto;transition:opacity 1.2s;text-align:center;overflow:hidden}
+#bokeh{position:absolute;inset:0;z-index:-1;display:block}
+#splash h2,#splash .splash-scene,#splash .splash-click{position:relative;z-index:1}
+#splash h2{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;text-transform:uppercase;
+  font-size:clamp(38px,6vw,72px);letter-spacing:.35em;text-indent:.35em}
+#splash .splash-scene{margin-top:26px;font-size:14px;letter-spacing:8px;text-indent:8px;opacity:.6;text-transform:uppercase}
+#splash .splash-click{margin-top:70px;font-size:11px;letter-spacing:4px;text-indent:4px;color:var(--beacon);
+  text-transform:uppercase;animation:splash-blink 2.6s ease-in-out infinite}
+@keyframes splash-blink{0%,100%{opacity:.25}50%{opacity:1}}
+body.pre-start #ui{opacity:0}
+#ui{transition:opacity 1.2s}
+
+#intro-screen{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
+  text-align:center;background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
+#intro-screen .panel{max-width:560px;padding:0 32px}
+#intro-screen h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;
+  letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
+#intro-screen p{font-size:13px;line-height:1.9;color:var(--ink-soft);margin:0 0 18px}
+#intro-screen p.anchor-question{color:var(--ink);border:1px solid rgba(255,255,255,.14);
+  padding:18px 22px;margin:30px 0;line-height:1.9}
+#intro-screen button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);
+  color:var(--ink);padding:13px 30px;font-family:ui-monospace,monospace;font-size:11px;
+  letter-spacing:3px;text-transform:uppercase;cursor:none;transition:.3s;margin-top:8px}
+#intro-screen button:hover{background:rgba(255,255,255,.12)}
+</style>
+</head>
+
+<body class="pre-start">
+<canvas id="scene"></canvas>
+<div id="hover"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<div id="splash">
+  <canvas id="bokeh"></canvas>
+  <h2>Living Atlantic</h2>
+  <div class="splash-scene" id="splash-scene">Scene III &mdash; The Threshold</div>
+  <div class="splash-click" id="splash-click">Click anywhere to start exploring</div>
+</div>
+
+<div id="intro-screen"><div class="panel" id="intro-screen-panel"></div></div>
+
+<div id="lang-toggle">
+  <button id="lang-en" class="active">EN</button>
+  <button id="lang-it">IT</button>
+</div>
+
+<div id="ui">
+  <header>
+    <h1>Living Atlantic</h1>
+    <div class="scene-label" id="scene-label">SCENE III &mdash; THE THRESHOLD</div>
+  </header>
+
+  <div id="conditions">
+    <div id="howto"></div>
+    <button id="b-c1" class="active">C1 &middot; STATIC</button>
+    <button id="b-c2">C2 &middot; DYNAMIC</button>
+    <button id="b-c3">C3 &middot; EXPERIENTIAL</button>
+  </div>
+
+  <div id="hover-hint"></div>
+
+  <div id="context-top">
+    <div id="describes"></div>
+    <div id="source"></div>
+  </div>
+
+  <div id="controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label" id="lbl-speed">SPEED</span>
+      <div class="ctrl-seg" id="speed-seg">
+        <button data-speed="0.5">&frac12;&times;</button>
+        <button data-speed="1" class="active">1&times;</button>
+        <button data-speed="2">2&times;</button>
+        <button data-speed="3">3&times;</button>
+      </div>
+    </div>
+    <div class="ctrl-group" id="model-group">
+      <span class="ctrl-label" id="lbl-models">MODELS</span>
+      <div class="model-seg" id="model-seg">
+        <button data-key="cglo">C-GLORS</button>
+        <button data-key="glor">GLORYS</button>
+        <button data-key="oras">ORAS5</button>
+      </div>
+    </div>
+    <div class="ctrl-group" id="aux-group">
+      <span class="ctrl-label">&nbsp;</span>
+      <div id="aux-row">
+        <button id="sound-toggle" style="display:none"></button>
+        <button id="replay-toggle"></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="readouts">
+    <div class="ro-item">
+      <span class="ro-label"><span id="beat-dot"></span><span id="lbl-month">CURRENT MONTH</span></span>
+      <span class="big" id="month-big">&mdash;</span>
+      <span id="values-line"></span>
+    </div>
+  </div>
+
+  <div id="time-wrap">
+    <div id="time-track">
+      <span id="time-start">&mdash;</span>
+      <div id="time-rail">
+        <input type="range" id="time" min="0" max="371" value="0" step="1">
+      </div>
+      <span id="time-end">&mdash;</span>
+    </div>
+    <div id="time-row">
+      <button id="play-toggle">&#10074;&#10074; PAUSE &amp; SCRUB</button>
+    </div>
+  </div>
+
+  <div id="legend-box" class="rail-box">
+    <div class="leg-title" id="leg-title"></div>
+    <div class="leg-row"><span class="leg-swatch" id="sw-cglo"></span><span class="leg-name">C-GLORS</span></div>
+    <div class="leg-row"><span class="leg-swatch" id="sw-glor"></span><span class="leg-name">GLORYS</span></div>
+    <div class="leg-row"><span class="leg-swatch" id="sw-oras"></span><span class="leg-name">ORAS5</span></div>
+  </div>
+
+  <div id="reading-box" class="rail-box"></div>
+
+  <div id="load-error"></div>
+</div>
+
+<div id="credit">&copy; 2026 Enrico Vaccari &middot; MSc Thesis &middot; Tomorrow University</div>
+
+<script type="module">
+import { loadBundle } from '../../shared/bundle.js';
+import { COL, INK, FONT } from '../../shared/palette.js';
+import { introHTML } from '../../shared/intro-threshold.js';
+import { sourceHTML, describesHTML, readingLines } from '../../shared/context-threshold.js';
+
+const STR = {
+en: {
+  doc_title:   'The Threshold — All Conditions (demo)',
+  splash_scene:'Scene III — The Threshold',
+  splash_click:'Click anywhere to start exploring',
+  scene_label: 'SCENE III &mdash; THE THRESHOLD',
+  howto:       'Play around with the different conditions, isolate the models, scrub the months, and watch the three estimates unfold.',
+  b_c1: 'C1 &middot; STATIC', b_c2: 'C2 &middot; DYNAMIC', b_c3: 'C3 &middot; EXPERIENTIAL',
+  hover_hint:  'HOVER ANY MOMENT TO READ THE THREE ESTIMATES &middot; DRAG THE SLIDER TO WALK TIME &middot; PAUSE ANYWHERE TO HOLD A MOMENT',
+  month_label: 'CURRENT MONTH',
+  speed:       'SPEED',
+  models:      'MODELS',
+  pause:       '&#10074;&#10074; PAUSE &amp; SCRUB',
+  resume:      '&#9654; RESUME AUTO',
+  sound_off:   '&#9834; SOUND: OFF',
+  sound_on:    '&#9834; SOUND: ON',
+  replay:      '&#8635; REPLAY',
+  unit:        'Sv',
+  leg_title:   'Reanalysis models',
+  axis_x:      'YEAR',
+  axis_y:      '&Psi; &middot; TRANSPORT (SV)',
+  header_line: 'AMOC TRANSPORT &middot; THREE REANALYSES &middot; {y0}&ndash;{y1}',
+  caption_line:'EACH LINE IS ONE MODEL&rsquo;S ESTIMATE OF THE SAME QUANTITY &middot; WHERE THEY MEET, THEY AGREE',
+  load_error:  'BUNDLE NOT FOUND<br>run <b>npm run dev</b><br>(data expected at /data/amoc_translate_bundle.json)',
+  months: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+           'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'],
+},
+it: {
+  doc_title:   'La Soglia — Tutte le Condizioni (demo)',
+  splash_scene:'Scena III — La Soglia',
+  splash_click:'Clicca ovunque per iniziare a esplorare',
+  scene_label: 'SCENA III &mdash; LA SOGLIA',
+  howto:       'Prova le diverse condizioni, isola i modelli, scorri i mesi e osserva le tre stime svilupparsi.',
+  b_c1: 'C1 &middot; STATICA', b_c2: 'C2 &middot; DINAMICA', b_c3: 'C3 &middot; ESPERIENZIALE',
+  hover_hint:  'PASSA IL CURSORE SU UN MOMENTO PER LE TRE STIME &middot; TRASCINA IL CURSORE PER PERCORRERE IL TEMPO &middot; METTI IN PAUSA PER FERMARE UN MOMENTO',
+  month_label: 'MESE CORRENTE',
+  speed:       'VELOCIT&Agrave;',
+  models:      'MODELLI',
+  pause:       '&#10074;&#10074; PAUSA &amp; SCORRI',
+  resume:      '&#9654; RIPRENDI AUTO',
+  sound_off:   '&#9834; AUDIO: OFF',
+  sound_on:    '&#9834; AUDIO: ON',
+  replay:      '&#8635; RIPETI',
+  unit:        'Sv',
+  leg_title:   'Modelli di rianalisi',
+  axis_x:      'ANNO',
+  axis_y:      '&Psi; &middot; TRASPORTO (SV)',
+  header_line: 'TRASPORTO AMOC &middot; TRE RIANALISI &middot; {y0}&ndash;{y1}',
+  caption_line:'OGNI LINEA &Egrave; LA STIMA DI UN MODELLO DELLA STESSA QUANTIT&Agrave; &middot; DOVE SI INCONTRANO, CONCORDANO',
+  load_error:  'BUNDLE NON TROVATO<br>esegui <b>npm run dev</b><br>(dati attesi in /data/amoc_translate_bundle.json)',
+  months: ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+           'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'],
+},
+};
+const DEFAULT_LANG = 'en';
+const urlLang = new URLSearchParams(location.search).get('lang');
+let lang = (urlLang === 'en' || urlLang === 'it') ? urlLang
+         : (localStorage.getItem('la-lang') === 'it' ? 'it' : DEFAULT_LANG);
+function T(key, vars){
+  let s = (STR[lang] && STR[lang][key]) ?? STR.en[key] ?? key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+function fmtMonth(ym){
+  const [y, m] = ym.split('-');
+  return T('months')[+m - 1] + ' ' + y;
+}
+const clean = (s) => s.replace(/&middot;/g, '·').replace(/&ndash;/g, '–')
+  .replace(/&rsquo;/g, '’').replace(/&Egrave;/g, 'È').replace(/&Agrave;/g, 'À')
+  .replace(/&Ugrave;/g, 'Ù').replace(/&Psi;/g, 'Ψ').replace(/&asymp;/g, '≈')
+  .replace(/&#8310;/g, '⁶').replace(/&sup3;/g, '³').replace(/&egrave;/g, 'è')
+  .replace(/&agrave;/g, 'à');
+
+/* Member tints — identical constants to both study files: positions on the
+   shared blue ramp (deep → north → northHi). Distinct weights = three voices. */
+const hexRgb = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+const RAMP = [hexRgb(COL.deep), hexRgb(COL.north), hexRgb(COL.northHi)];
+function rampColor(t){
+  const seg = t <= 0.5 ? [RAMP[0], RAMP[1], t * 2] : [RAMP[1], RAMP[2], (t - 0.5) * 2];
+  const c = seg[0].map((v, i) => Math.round(v + (seg[1][i] - v) * seg[2]));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+const MEMBERS = [
+  { key: 'cglo', name: 'C-GLORS', color: rampColor(0.55), phase: 0.0, width: 1.5, alpha: 0.90 },
+  { key: 'glor', name: 'GLORYS',  color: rampColor(0.20), phase: 2.1, width: 1.15, alpha: 0.82 },
+  { key: 'oras', name: 'ORAS5',   color: rampColor(1.00), phase: 4.2, width: 1.35, alpha: 0.95 },
+];
+const COOL = hexRgb(COL.north), WARM = hexRgb(COL.beacon);
+function tempColor(w, a){
+  const c = COOL.map((v, i) => Math.round(v + (WARM[i] - v) * w));
+  return `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+}
+
+/* ============================== state ==================================== */
+let ENS = null, N = 0, dataLoaded = false;
+let cond = 'C1';
+let SERIES = null, LO = null, HI = null;
+let wNorm = null;
+let yLo = 0, yHi = 1;
+let W = 0, H = 0;
+let tFloat = 0;
+let playing = true;
+let speedMul = 1;
+let frame = 0;
+let beatEnv = 0, nextBeatT = 0;
+const memShown = { cglo: true, glor: true, oras: true };
+
+const cv = document.getElementById('scene');
+const g  = cv.getContext('2d');
+const mouse = { x: -100, y: -100 };
+const timeEl = document.getElementById('time');
+const hoverEl = document.getElementById('hover');
+const valuesEl = document.getElementById('values-line');
+
+let fit = null;
+function computeFit(){
+  if (!ENS) return;
+  const mL = 110, mR = 110, mT = 200, mB = 205;
+  fit = { ox: mL, oy: mT, pw: Math.max(320, W - mL - mR), ph: Math.max(200, H - mT - mB) };
+}
+const X = (t) => fit.ox + (t / (N - 1)) * fit.pw;
+const Y = (v) => fit.oy + ((yHi - v) / (yHi - yLo)) * fit.ph;
+
+function valAt(arr, t){
+  const i0 = Math.floor(t), i1 = Math.min(i0 + 1, N - 1), f = t - i0;
+  const e = f * f * (3 - 2 * f);
+  return arr[i0] + (arr[i1] - arr[i0]) * e;
+}
+function agitAt(t){
+  const i0 = Math.floor(t), i1 = Math.min(i0 + 1, N - 1), f = t - i0;
+  return wNorm[i0] * (1 - f) + wNorm[i1] * f;
+}
+
+/* ------------------- shared furniture (grid, ticks, axes) ---------------- */
+function drawFurniture(full){
+  g.font = '9px ui-monospace,monospace';
+  g.strokeStyle = full ? 'rgba(231,240,247,0.10)' : 'rgba(231,240,247,0.08)';
+  g.fillStyle = 'rgba(231,240,247,0.35)';
+  g.lineWidth = 1;
+  for (let v = Math.ceil(yLo / 5) * 5; v <= yHi; v += 5){
+    const y = Y(v);
+    g.beginPath(); g.moveTo(fit.ox, y); g.lineTo(fit.ox + fit.pw, y); g.stroke();
+    g.textAlign = 'right';
+    g.fillText(String(v), fit.ox - 10, y + 3);
+  }
+  const yrA = +ENS.time[0].slice(0, 4), yrB = +ENS.time[N - 1].slice(0, 4);
+  g.textAlign = 'center';
+  for (let yr = Math.ceil(yrA / 5) * 5; yr <= yrB; yr += 5){
+    const idx = ENS.time.indexOf(yr + '-01');
+    if (idx < 0) continue;
+    const x = X(idx);
+    g.beginPath(); g.moveTo(x, fit.oy); g.lineTo(x, fit.oy + fit.ph); g.stroke();
+    g.fillText(String(yr), x, fit.oy + fit.ph + 20);
+  }
+  g.save();
+  g.translate(fit.ox - 44, fit.oy + fit.ph / 2);
+  g.rotate(-Math.PI / 2);
+  g.fillText(clean(T('axis_y')), 0, 0);
+  g.restore();
+  g.textAlign = 'left';
+  if (full){                                       // C1: publication frame + titles
+    g.fillStyle = 'rgba(127,180,217,0.05)';
+    g.fillRect(fit.ox, fit.oy, fit.pw, fit.ph);
+    g.strokeStyle = 'rgba(231,240,247,0.35)';
+    g.strokeRect(fit.ox, fit.oy, fit.pw, fit.ph);
+    g.fillStyle = INK.inkSoft;
+    g.font = '10px ui-monospace,monospace';
+    const y0 = ENS.time[0].slice(0, 4), y1 = ENS.time[N - 1].slice(0, 4);
+    g.fillText(clean(T('header_line', { y0, y1 })), fit.ox, fit.oy - 22);
+    g.textAlign = 'center';
+    g.font = '9px ui-monospace,monospace';
+    g.fillText(clean(T('caption_line')), fit.ox + fit.pw / 2, fit.oy + fit.ph + 48);
+    g.fillText(clean(T('axis_x')), fit.ox + fit.pw / 2, fit.oy + fit.ph + 66);
+    g.textAlign = 'left';
+  }
+}
+
+/* ------------------------------------------------------------ rendering --- */
+function draw(){
+  if (!dataLoaded) return;
+  frame++;
+  g.clearRect(0, 0, W, H);
+  const bgr = g.createRadialGradient(W/2, H*0.42, 0, W/2, H*0.42, Math.max(W, H)*0.75);
+  bgr.addColorStop(0, '#0a2136'); bgr.addColorStop(0.45, '#061524'); bgr.addColorStop(1, '#010811');
+  g.fillStyle = bgr; g.fillRect(0, 0, W, H);
+
+  const isStatic = cond === 'C1';
+  const isExp = cond === 'C3';
+
+  if (!isStatic && playing){
+    tFloat += 0.06 * speedMul;
+    if (tFloat > N - 1) tFloat = 0;
+    timeEl.value = Math.round(tFloat);
+  }
+
+  const upTo = isStatic ? N - 1 : tFloat;
+  const visited = Math.floor(upTo);
+  const agitNow = agitAt(upTo);
+
+  drawFurniture(isStatic);
+
+  // C1: the faint envelope band behind the lines (paper idiom)
+  if (isStatic){
+    g.fillStyle = 'rgba(127,180,217,0.07)';
+    g.beginPath();
+    for (let i = 0; i < N; i++){
+      const x = X(i), y = Y(HI[i]);
+      if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+    }
+    for (let i = N - 1; i >= 0; i--) g.lineTo(X(i), Y(LO[i]));
+    g.closePath(); g.fill();
+  }
+
+  // C3: P4 — the living medium (churning + colour temperature by band width)
+  if (isExp && visited > 0){
+    const SAMPLES = 720;
+    for (let k = 0; k < SAMPLES; k++){
+      const u = Math.random() * Math.min(upTo, N - 1);
+      const wq = agitAt(u);
+      if (Math.random() > wq * 0.92 + 0.04) continue;
+      const lo = valAt(LO, u), hi = valAt(HI, u);
+      const yv = lo + Math.random() * (hi - lo);
+      const flick = 0.5 + 0.5 * Math.sin(u * 13.7 + frame * (0.10 + wq * 0.16) + k);
+      g.fillStyle = tempColor(wq, (0.05 + 0.20 * wq) * flick);
+      g.beginPath();
+      g.arc(X(u), Y(yv), 0.6 + wq * 1.5, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  // the three strands (C1: full and still; C2: advancing; C3: + quiver);
+  // each with its distinct weight/opacity (three voices); model toggles dim
+  const STEP = Math.max(1, Math.round(N / (fit.pw / 3)));
+  for (const m of MEMBERS){
+    const arr = SERIES[m.key];
+    const dim = (isStatic || memShown[m.key]) ? 1 : 0.14;
+    g.strokeStyle = m.color;
+    g.lineWidth = m.width;
+    g.lineJoin = 'round';
+    g.globalAlpha = m.alpha * dim;
+    g.beginPath();
+    let first = true;
+    for (let i = 0; i <= visited; i += STEP){
+      const wq = wNorm[i];
+      const jit = isExp ? wq * 3.4 * Math.sin(i * 0.9 + m.phase + frame * (0.05 + wq * 0.10)) : 0;
+      const x = X(i), y = Y(arr[i]) + jit;
+      if (first){ g.moveTo(x, y); first = false; }
+      else g.lineTo(x, y);
+    }
+    if (!isStatic){
+      const hv = valAt(arr, upTo);
+      const hj = isExp ? agitNow * 3.4 * Math.sin(upTo * 0.9 + m.phase + frame * (0.05 + agitNow * 0.10)) : 0;
+      if (!first) g.lineTo(X(upTo), Y(hv) + hj);
+    } else if (STEP > 1){
+      g.lineTo(X(N - 1), Y(arr[N - 1]));
+    }
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+
+  // C2/C3: the amber current-moment vocabulary
+  if (!isStatic){
+    const xNow = X(upTo);
+    const loNow = valAt(LO, upTo), hiNow = valAt(HI, upTo);
+    g.strokeStyle = COL.beacon;
+    g.globalAlpha = 0.22;
+    g.lineWidth = 1;
+    g.beginPath(); g.moveTo(xNow, fit.oy); g.lineTo(xNow, fit.oy + fit.ph); g.stroke();
+    g.globalAlpha = 0.5 + beatEnv * 0.3;
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(xNow, Y(hiNow) - 6); g.lineTo(xNow, Y(loNow) + 6); g.stroke();
+    g.globalAlpha = 1;
+    for (const m of MEMBERS){
+      const dim = memShown[m.key] ? 1 : 0.14;
+      const hv = valAt(SERIES[m.key], upTo);
+      const hj = isExp ? agitNow * 3.4 * Math.sin(upTo * 0.9 + m.phase + frame * (0.05 + agitNow * 0.10)) : 0;
+      const hy = Y(hv) + hj;
+      const glow = g.createRadialGradient(xNow, hy, 0, xNow, hy, 9 + beatEnv * 5);
+      glow.addColorStop(0, m.color.replace('rgb', 'rgba').replace(')', `,${0.55 * dim})`));
+      glow.addColorStop(1, m.color.replace('rgb', 'rgba').replace(')', ',0)'));
+      g.fillStyle = glow;
+      g.beginPath(); g.arc(xNow, hy, 9 + beatEnv * 5, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = dim;
+      g.fillStyle = m.color;
+      g.beginPath(); g.arc(xNow, hy, 3.2, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = 1;
+    }
+    document.getElementById('beat-dot').style.transform = 'scale(' + (1 + beatEnv * 0.6).toFixed(2) + ')';
+    updateReadout();
+    updateHeartbeat();
+  }
+
+  if (isExp) updateHover(); else hoverEl.style.display = 'none';
+  requestAnimationFrame(draw);
+}
+
+/* month + three-value readout (C2/C3) */
+let readoutIdx = -1;
+function updateReadout(){
+  const hi = isExpHoverIdx();
+  const idx = hi >= 0 ? hi : Math.round(tFloat);
+  if (idx === readoutIdx) return;
+  readoutIdx = idx;
+  document.getElementById('month-big').textContent = fmtMonth(ENS.time[idx]);
+  valuesEl.innerHTML = MEMBERS.map((m, k) =>
+    `<span style="color:${m.color}">${SERIES[m.key][idx].toFixed(1)}</span>` +
+    (k < 2 ? '<span class="vsep">·</span>' : '')
+  ).join('') + `<span class="vunit">${T('unit')}</span>`;
+}
+
+/* hover (C3 only): the month and the three model values — nothing else */
+function isExpHoverIdx(){
+  if (cond !== 'C3' || !dataLoaded || document.body.classList.contains('pre-start')) return -1;
+  const inX = mouse.x >= fit.ox && mouse.x <= fit.ox + fit.pw;
+  const inY = mouse.y >= fit.oy - 20 && mouse.y <= fit.oy + fit.ph + 20;
+  if (!inX || !inY) return -1;
+  const ti = Math.round(((mouse.x - fit.ox) / fit.pw) * (N - 1));
+  if (ti < 0 || ti > Math.floor(tFloat)) return -1;
+  return ti;
+}
+function updateHover(){
+  const ti = isExpHoverIdx();
+  if (ti < 0){ hoverEl.style.display = 'none'; return; }
+  const vals = MEMBERS.map(m => SERIES[m.key][ti].toFixed(1)).join(' · ');
+  hoverEl.textContent = fmtMonth(ENS.time[ti]) + ' · ' + vals + ' Sv';
+  hoverEl.style.display = 'block';
+  hoverEl.style.left = Math.min(W - 320, mouse.x + 18) + 'px';
+  hoverEl.style.top  = Math.max(12, mouse.y - 34) + 'px';
+}
+
+/* ------------------------------------------------------------- audio ------ */
+let AC = null, osc = null, pulse = null, master = null;
+let oceanGain = null, oceanLp = null, drone2 = null;
+let audioOn = false;
+
+function initAudio(){
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain(); master.gain.value = 0.62;
+  master.connect(AC.destination);
+  osc = AC.createOscillator(); osc.type = 'sine'; osc.frequency.value = 60;
+  const osc2 = AC.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 120;
+  const partial = AC.createGain(); partial.gain.value = 0.35;
+  pulse = AC.createGain(); pulse.gain.value = 0;
+  osc.connect(pulse); osc2.connect(partial); partial.connect(pulse); pulse.connect(master);
+  osc.start(); osc2.start();
+  const len = AC.sampleRate * 4;
+  const buf = AC.createBuffer(1, len, AC.sampleRate);
+  const d = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < len; i++){
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.02 * w) / 1.02;
+    d[i] = last * 3.5;
+  }
+  const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
+  oceanLp = AC.createBiquadFilter(); oceanLp.type = 'lowpass'; oceanLp.frequency.value = 380; oceanLp.Q.value = 0.7;
+  oceanGain = AC.createGain(); oceanGain.gain.value = 0.06;
+  src.connect(oceanLp); oceanLp.connect(oceanGain); oceanGain.connect(master);
+  const swell = AC.createOscillator(); swell.frequency.value = 0.06;
+  const swellAmt = AC.createGain(); swellAmt.gain.value = 0.035;
+  swell.connect(swellAmt); swellAmt.connect(oceanGain.gain);
+  const drone1 = AC.createOscillator(); drone1.type = 'sine';     drone1.frequency.value = 82;
+  drone2 = AC.createOscillator(); drone2.type = 'triangle'; drone2.frequency.value = 82.4;
+  const droneGain = AC.createGain(); droneGain.gain.value = 0.014;
+  drone1.connect(droneGain); drone2.connect(droneGain); droneGain.connect(master);
+  src.start(); swell.start(); drone1.start(); drone2.start();
+}
+function updateHeartbeat(){
+  beatEnv *= 0.93;
+  const norm = agitAt(tFloat);
+  const bpm = 40 + norm * 40;
+  const nowS = performance.now() / 1000;
+  if (nowS < nextBeatT) return;
+  nextBeatT = nowS + 60 / bpm;
+  beatEnv = 1;
+  if (audioOn && AC && AC.state === 'running'){
+    const now = AC.currentTime;
+    const fullness = 0.4 + norm * 0.9;
+    pulse.gain.cancelScheduledValues(now);
+    pulse.gain.setTargetAtTime(fullness, now, 0.015);
+    pulse.gain.setTargetAtTime(0, now + 0.09, 0.12);
+    osc.frequency.setTargetAtTime(55 + norm * 20, now, 0.05);
+    if (oceanGain){
+      oceanGain.gain.setTargetAtTime(0.05 + 0.11 * norm, now, 0.08);
+      oceanLp.frequency.setTargetAtTime(320 + norm * 900, now, 0.10);
+    }
+    if (drone2) drone2.frequency.setTargetAtTime(82.4 + norm * 5.6, now, 0.10);
+  }
+}
+function refreshSoundBtn(){
+  const b = document.getElementById('sound-toggle');
+  b.innerHTML = audioOn ? T('sound_on') : T('sound_off');
+  b.classList.toggle('on', audioOn);
+}
+function setSound(on){
+  audioOn = on;
+  refreshSoundBtn();
+  if (on){ initAudio(); if (AC.state === 'suspended') AC.resume(); }
+  else if (AC && AC.state === 'running') AC.suspend();
+}
+document.getElementById('sound-toggle').onclick = () => setSound(!audioOn);
+
+/* ------------------------------------------------------ condition switch -- */
+function setCond(c){
+  cond = c;
+  document.getElementById('b-c1').classList.toggle('active', c === 'C1');
+  document.getElementById('b-c2').classList.toggle('active', c === 'C2');
+  document.getElementById('b-c3').classList.toggle('active', c === 'C3');
+  const dynamic = c !== 'C1';
+  document.getElementById('controls').style.display  = dynamic ? 'flex' : 'none';
+  document.getElementById('readouts').style.display  = dynamic ? 'block' : 'none';
+  document.getElementById('time-wrap').style.visibility = dynamic ? 'visible' : 'hidden';
+  document.getElementById('model-group').style.display = dynamic ? 'flex' : 'none';
+  document.getElementById('aux-group').style.display   = dynamic ? 'flex' : 'none';
+  document.getElementById('legend-box').style.display  = c === 'C1' ? 'block' : 'none';
+  document.getElementById('hover-hint').style.display = c === 'C3' ? 'block' : 'none';
+  document.getElementById('sound-toggle').style.display = c === 'C3' ? 'inline-block' : 'none';
+  if (c !== 'C3' && audioOn) setSound(false);       // sound exists only in C3
+  if (dynamic){ tFloat = 0; readoutIdx = -1; setPlaying(true); }
+}
+document.getElementById('b-c1').onclick = () => setCond('C1');
+document.getElementById('b-c2').onclick = () => setCond('C2');
+document.getElementById('b-c3').onclick = () => setCond('C3');
+
+/* ------------------------------------------------------------- wiring ----- */
+function setPlaying(p){
+  playing = p;
+  document.getElementById('play-toggle').innerHTML = p ? T('pause') : T('resume');
+}
+document.getElementById('play-toggle').onclick = () => setPlaying(!playing);
+timeEl.addEventListener('input', () => {
+  setPlaying(false);
+  tFloat = +timeEl.value;
+});
+document.getElementById('speed-seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  speedMul = +b.dataset.speed;
+  document.querySelectorAll('#speed-seg button').forEach(x => x.classList.toggle('active', x === b));
+});
+document.getElementById('model-seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const k = b.dataset.key;
+  memShown[k] = !memShown[k];
+  b.classList.toggle('off', !memShown[k]);
+});
+document.getElementById('replay-toggle').onclick = () => { tFloat = 0; timeEl.value = 0; readoutIdx = -1; setPlaying(true); };
+
+const curDot = document.getElementById('cursor-dot');
+const curRing = document.getElementById('cursor-ring');
+function moveCursor(x, y){
+  curDot.style.transform  = `translate(${x - 2.5}px,${y - 2.5}px)`;
+  curRing.style.transform = `translate(${x - 15}px,${y - 15}px)`;
+}
+moveCursor(innerWidth / 2, innerHeight / 2);
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  moveCursor(e.clientX, e.clientY);
+});
+
+const bokehCv = document.getElementById('bokeh');
+const bg = bokehCv.getContext('2d');
+let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
+function resizeBokeh(){
+  const dpr = window.devicePixelRatio || 1;
+  bokehW = innerWidth; bokehH = innerHeight;
+  bokehCv.width = Math.round(bokehW * dpr); bokehCv.height = Math.round(bokehH * dpr);
+  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
+  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!bokehSpots.length) seedBokeh();
+}
+function seedBokeh(){
+  bokehSpots = [];
+  for (let i = 0; i < 26; i++) bokehSpots.push({
+    x: Math.random() * bokehW, y: Math.random() * bokehH,
+    r: 24 + Math.random() * 100,
+    vx: (Math.random() - 0.5) * 0.25, vy: -0.05 - Math.random() * 0.22,
+    a: 0.05 + Math.random() * 0.13,
+    hue: Math.random() < 0.55 ? '127,180,217' : '255,179,92'
+  });
+}
+function drawBokeh(){
+  if (!bokehOn) return;
+  bg.clearRect(0, 0, bokehW, bokehH);
+  bg.globalCompositeOperation = 'lighter';
+  for (const sp of bokehSpots){
+    sp.x += sp.vx; sp.y += sp.vy;
+    if (sp.y + sp.r < 0)       sp.y = bokehH + sp.r;
+    if (sp.x < -sp.r)          sp.x = bokehW + sp.r;
+    if (sp.x > bokehW + sp.r)  sp.x = -sp.r;
+    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+    bg.fillStyle = grd;
+    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); bg.fill();
+  }
+  bg.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(drawBokeh);
+}
+
+document.getElementById('splash').addEventListener('click', () => {
+  const s = document.getElementById('splash');
+  s.style.opacity = '0';
+  s.style.pointerEvents = 'none';
+  setTimeout(() => { s.style.display = 'none'; bokehOn = false; }, 1300);
+  const scr = document.getElementById('intro-screen');
+  scr.querySelector('.panel').innerHTML = introHTML(lang);
+  scr.style.display = 'flex';
+}, { once: true });
+document.getElementById('intro-screen').addEventListener('click', e => {
+  if (e.target.id !== 'intro-continue') return;
+  document.getElementById('intro-screen').style.display = 'none';
+  document.body.classList.remove('pre-start');
+  setCond('C1');
+});
+
+function applyLang(l){
+  lang = l;
+  localStorage.setItem('la-lang', l);
+  document.documentElement.lang = l;
+  document.title = T('doc_title');
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-it').classList.toggle('active', l === 'it');
+  document.getElementById('splash-scene').innerHTML = T('splash_scene');
+  document.getElementById('splash-click').innerHTML = T('splash_click');
+  document.getElementById('scene-label').innerHTML  = T('scene_label');
+  document.getElementById('howto').innerHTML        = T('howto');
+  document.getElementById('b-c1').innerHTML         = T('b_c1');
+  document.getElementById('b-c2').innerHTML         = T('b_c2');
+  document.getElementById('b-c3').innerHTML         = T('b_c3');
+  document.getElementById('hover-hint').innerHTML   = T('hover_hint');
+  document.getElementById('lbl-month').innerHTML    = T('month_label');
+  document.getElementById('lbl-speed').innerHTML    = T('speed');
+  document.getElementById('lbl-models').innerHTML   = T('models');
+  document.getElementById('replay-toggle').innerHTML= T('replay');
+  document.getElementById('load-error').innerHTML   = T('load_error');
+  document.getElementById('leg-title').innerHTML    = T('leg_title');
+  document.getElementById('source').innerHTML = sourceHTML(l);
+  if (dataLoaded){
+    const y0 = ENS.time[0].slice(0, 4), y1 = ENS.time[N - 1].slice(0, 4);
+    document.getElementById('describes').innerHTML = describesHTML(l, { n: N, y0, y1 });
+    document.getElementById('reading-box').innerHTML =
+      readingLines(l, { y0, y1 })
+        .map(line => '<div class="read-line">' + line + '</div>').join('');
+    document.getElementById('time-start').textContent = fmtMonth(ENS.time[0]);
+    document.getElementById('time-end').textContent   = fmtMonth(ENS.time[N - 1]);
+    readoutIdx = -1;
+  }
+  const introScr = document.getElementById('intro-screen');
+  if (introScr.style.display === 'flex')
+    introScr.querySelector('.panel').innerHTML = introHTML(l);
+  setPlaying(playing);
+  refreshSoundBtn();
+}
+document.getElementById('lang-en').onclick = () => applyLang('en');
+document.getElementById('lang-it').onclick = () => applyLang('it');
+
+window.addEventListener('resize', () => {
+  const dpr = window.devicePixelRatio || 1;
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  computeFit();
+  resizeBokeh();
+});
+
+/* ---------------------------------------------------------------- boot ---- */
+async function boot(){
+  applyLang(lang);
+  window.dispatchEvent(new Event('resize'));
+  seedBokeh(); drawBokeh();
+  let B = null;
+  try { B = await loadBundle('/data/amoc_translate_bundle.json'); }
+  catch (e){
+    document.getElementById('load-error').style.display = 'block';
+    console.error(e);
+    return;
+  }
+  ENS = B.copernicus_ensemble;
+  N = ENS.time.length;
+  SERIES = { cglo: ENS.members.cglo, glor: ENS.members.glor, oras: ENS.members.oras };
+  LO = ENS.lower; HI = ENS.upper;
+  wNorm = new Float64Array(N);
+  let wMax = -Infinity, wMin = Infinity;
+  for (let i = 0; i < N; i++){
+    wNorm[i] = HI[i] - LO[i];
+    if (wNorm[i] > wMax) wMax = wNorm[i];
+    if (wNorm[i] < wMin) wMin = wNorm[i];
+  }
+  for (let i = 0; i < N; i++) wNorm[i] = (wNorm[i] - wMin) / (wMax - wMin);
+  let vMin = Infinity, vMax = -Infinity;
+  for (const m of MEMBERS){
+    const a = SERIES[m.key];
+    for (let i = 0; i < N; i++){
+      if (a[i] < vMin) vMin = a[i];
+      if (a[i] > vMax) vMax = a[i];
+    }
+  }
+  const pad = (vMax - vMin) * 0.05;
+  yLo = vMin - pad; yHi = vMax + pad;
+  document.getElementById('sw-cglo').style.background = MEMBERS[0].color;
+  document.getElementById('sw-glor').style.background = MEMBERS[1].color;
+  document.getElementById('sw-oras').style.background = MEMBERS[2].color;
+  document.querySelectorAll('#model-seg button').forEach(b => {
+    const m = MEMBERS.find(x => x.key === b.dataset.key);
+    b.style.borderBottomColor = m.color;
+  });
+  timeEl.max = N - 1;
+  computeFit();
+  dataLoaded = true;
+  applyLang(lang);
+  requestAnimationFrame(draw);
+}
+boot();
+</script>
+</body>
+</html>

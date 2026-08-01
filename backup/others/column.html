@@ -1,0 +1,169 @@
+/* =====================================================================
+   BLOCK 1 — DATA
+   ---------------------------------------------------------------------
+   Goal: load the numerical substrate and expose it to the rest of the
+   code under clear names. No drawing here, no logic — just "what we hold".
+
+   Serves: O1.1 (vertical structure via PCA) and O2.1 (one single data
+   source for C1/C2/C3 → informational equivalence by construction).
+
+   Principle: every on-screen value will be born from these variables.
+              Zero invented numbers.
+   ===================================================================== */
+
+const BUNDLE = /* __BUNDLE__ */ ;   // the JSON from amoc_translate_bundle.json
+
+/* ---- 1a. The two data families ---- */
+const PCA  = BUNDLE.pca;                  // the static structure (shape + modes)
+const TRAJ = BUNDLE.trajectory_monthly;   // the evolution over time (240 months)
+
+/* ---- 1b. The vertical axis: depth ----
+   307 levels, from the surface (0 m) to nearly 6000 m.
+   This is the axis the whole scene rests on: depth = down. */
+const DEPTH = PCA.depth_m;                 // [0.0, ..., 5995.1]  (307 values, in metres)
+const NLEV  = DEPTH.length;                // 307
+const DMAX  = DEPTH[NLEV - 1];             // 5995.1 — the maximum depth
+
+/* ---- 1c. The base shape and the two modes of deformation ----
+   MEAN : the mean column, in Sv, at every depth (peak +16.81 at 1030 m)
+   B1, B2 : the two modes as UNIT VECTORS (recon_basis, NOT eof)
+            → multiplied by the raw pc1/pc2 scores (block 2) */
+const MEAN = PCA.mean_profile;             // [Sv × 307]  mean shape
+const B1   = PCA.recon_basis.pc1;          // mode 1 (unit) — AMOC intensity
+const B2   = PCA.recon_basis.pc2;          // mode 2 (unit) — vertical redistribution
+
+/* ---- 1d. How much variance the modes explain ----
+   These numbers become the caption ("two modes = 97.9%") and justify
+   why we show only 2 modes: H2, the manifold is flat. */
+const VAR  = PCA.var_explained;            // [0.898, 0.080, 0.016, ...]
+const CUM2 = PCA.cumulative_2pc;           // 0.97855 → 97.9%
+
+/* ---- 1e. The evolution over time ----
+   TIME : monthly labels "2004-04" ... "2024-03"  (240 steps)
+   PC1  : how intense mode 1 is each month  (range ≈ [-138, +93])
+   PC2  : how active mode 2 is each month    (range ≈ [-26, +27])
+   Note: the large values (−138 in Jan 2010) are the collapse recovered in NB03. */
+const TIME = TRAJ.time;                     // [240] month labels
+const PC1  = TRAJ.pc1;                       // [240] mode-1 scores
+const PC2  = TRAJ.pc2;                       // [240] mode-2 scores
+
+
+/* =====================================================================
+   BLOCK 2 — RECONSTRUCTION
+   ---------------------------------------------------------------------
+   Goal: given a month t, rebuild the vertical transport profile from the
+   two dominant modes. This is the PCA made visible: we show the two-mode
+   reconstruction, not the raw data.
+
+   Formula:  profile(t) = MEAN + PC1(t)·B1 + PC2(t)·B2
+
+   Why two modes: they capture 97.9% of all variability (CUM2), and the
+   autoencoder (NB05) confirms the manifold is flat — two modes lose
+   almost nothing. This is the empirical ground for H2.
+
+   Serves: O1.1 (the recovered vertical structure) and, because C1/C2/C3
+   will all call this same function, O2.1 (informational equivalence).
+   ===================================================================== */
+
+function profileAt(t){
+  // PC1(t), PC2(t): the two scores for this month (0 if out of range, defensive)
+  const a = PC1[t] || 0;   // mode-1 amount this month (e.g. −138 = collapse)
+  const b = PC2[t] || 0;   // mode-2 amount this month
+
+  // Rebuild 307 depth levels: rest shape + how-intense + how-redistributed
+  const out = new Array(NLEV);
+  for(let i = 0; i < NLEV; i++){
+    out[i] = MEAN[i] + a * B1[i] + b * B2[i];   // Sv at depth DEPTH[i]
+  }
+  return out;   // → array of 307 Sv values, the column for month t
+}
+
+/* =====================================================================
+   BLOCK 3 — GLOBAL STATE & GEOMETRY
+   ---------------------------------------------------------------------
+   Goal: hold "what is happening now" (condition, mouse) and define the
+   ONE geometry that maps physical values (Sv, metres) to screen pixels.
+
+   Why this matters for the thesis: C1/C2/C3 all call the same geometry.
+   Same axis position, same Sv→pixel scale, same depth→height mapping.
+   Only the layers on top change (motion, sound, heartbeat), never the
+   placement. So geometry cannot explain differences between conditions —
+   only the representation can. This is O2.1 (informational equivalence)
+   built into the code, following Munzner (2014) on coordinated views.
+   ===================================================================== */
+
+/* ---- 3a. Canvas handle + live state ---- */
+let W, H;                                   // canvas size in pixels (set on resize)
+let cond = 'C1';                            // current condition: 'C1' | 'C2' | 'C3'
+const cv = document.getElementById('scene');
+const g  = cv.getContext('2d');            // the 2D drawing context
+
+/* mouse: real position (x,y) + a lagging position (lx,ly) for the cursor ring.
+   'active' tells us whether the pointer is currently over the scene. */
+const mouse = { x:-999, y:-999, lx:-999, ly:-999, active:false };
+
+let particles = [];                         // filled later (Block 4); declared here
+
+/* ---- 3b. The single geometry ----
+   Returns where the column lives on screen. Called identically by C1/C2/C3.
+     axisX   : x of the vertical zero-transport axis (~42% from the left)
+     top     : y where the surface (0 m) sits
+     bottom  : y where the abyss (~6000 m) sits
+     svScale : pixels per Sverdrup — tied to width so the column keeps a
+               stable footprint (~1/3 of the width) at any resolution;
+               capped at 26 so it never grows absurd on huge screens
+               (17 Sv ≈ near the profile peak). */
+function geom(){
+  return {
+    axisX:  Math.round(W * 0.42),
+    top:    150,
+    bottom: H - 190,
+    svScale: Math.min(26, (W * 0.30) / 17)
+  };
+}
+
+/* ---- 3c. Physical value → screen coordinate ----
+   depth (metres) → y pixel. Depth increases DOWNWARD (physical convention,
+   Harold et al. 2016) — the surface is at the top, the abyss at the bottom,
+   never inverted. */
+function yOf(depth, G){
+  return G.top + (depth / DMAX) * (G.bottom - G.top);
+}
+
+/* Same mapping, but starting from a level index i (0..306) instead of metres.
+   A convenience so drawing loops can go level-by-level. */
+function yOfIdx(i, G){
+  return yOf(DEPTH[i], G);
+}
+
+
+/* =====================================================================
+   BLOCK 4 — PARTICLE FIELD (seeding)
+   ---------------------------------------------------------------------
+   Goal: create the cloud of particles that will later reveal the flow.
+   This block only SEEDS them (how many, where they start, size, opacity).
+   Moving and drawing them happens in Block 8.
+
+   Why particles: transport in Sv is abstract; a static curve is correct
+   but inert (Sterman 2008 — even experts misread it). Motion is the
+   strongest pre-attentive channel: the eye reads speed before conscious
+   thought, with no legend needed (Ware 2021). A particle racing at 1030 m
+   and one crawling backward at 4500 m let the viewer FEEL that the current
+   is strong-and-north above, weak-and-south below. This is the shift from
+   "system to read" to "system to perceive" — the core of H-A.
+
+   Note: only used in C2/C3. C1 stays a still publication-style curve.
+   ===================================================================== */
+
+function seedParticles(){
+  particles = [];                         // clear any previous field (called on resize)
+
+  for(let k = 0; k < 1500; k++){          // 1500 = readable flow, still 60fps on modest laptops
+    particles.push({
+      i: (Math.random() * (NLEV - 1)) | 0,   // depth level 0..306 — the particle lives HERE
+      x: Math.random() * W,                   // random start x (so they don't spawn in a line)
+      s: 0.6 + Math.random() * 1.4,           // size 0.6–2.0 px — slight variety = organic feel
+      a: 0.14 + Math.random() * 0.24          // base opacity — raised so background particles read well
+    });
+  }
+}

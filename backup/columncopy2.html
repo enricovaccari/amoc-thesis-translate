@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Atlantic — Scene I — The Column</title>
+
+<style>
+/* === A. PALETTE === */
+:root{
+  --abyss:#010811;
+  --flow-north:#7fb4d9;
+  --flow-north-hi:#cfe8ff;
+  --return-deep:#24507a;
+  --beacon:#ffb35c;
+  --ink:#e7f0f7;
+  --ink-soft:rgba(231,240,247,0.55);
+}
+
+/* === B. RESET + CANVAS === */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--abyss);color:var(--ink);
+  font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;overflow:hidden;cursor:none}
+canvas{display:block;position:absolute;inset:0}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:10}
+
+/* === C. TITOLO === */
+header{position:absolute;top:50px;left:50px}
+header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:28px;letter-spacing:12px;text-transform:uppercase}
+.scene-label{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:5px;opacity:.5;margin-top:10px}
+#dynamic-label{color:var(--beacon);font-family:ui-monospace,monospace;font-size:11px;margin-top:15px;text-transform:uppercase;letter-spacing:2px;min-height:14px}
+
+/* === D. BLOCCO INTRO === */
+#intro{position:absolute;top:180px;left:50px;width:330px;pointer-events:auto;font-size:12.5px;line-height:1.75;
+  max-height:calc(100vh - 330px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;
+  transition:left .3s}
+#intro::-webkit-scrollbar{width:4px}
+#intro::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15)}
+.info-box{background:rgba(255,255,255,0.03);border-left:2px solid var(--beacon);padding:18px;backdrop-filter:blur(10px);margin-bottom:16px}
+.info-box.soft{border-color:var(--return-deep);opacity:.8;font-size:11.5px}
+#c3-guide{display:none;font-size:11px;line-height:1.7}
+#c3-guide b{color:var(--beacon);font-weight:400;letter-spacing:1px}
+#c3-guide .g-row{margin-bottom:9px}
+[data-hint]{pointer-events:auto}
+
+/* === E. CONTROLLI === */
+#conditions{position:absolute;top:50px;right:50px;display:flex;gap:10px;pointer-events:auto}
+#conditions button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,0.1);color:var(--ink);padding:10px 18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.3s}
+#conditions button.active{background:var(--ink);color:var(--abyss);font-weight:700}
+
+#legend{position:absolute;left:50px;bottom:60px;font-family:ui-monospace,monospace;font-size:10px;display:flex;flex-direction:column;gap:10px}
+.leg-item{display:flex;align-items:center;gap:10px;letter-spacing:1px;text-transform:uppercase}
+.swatch{width:12px;height:12px;border-radius:50%}
+
+#readouts{position:absolute;right:50px;bottom:60px;text-align:right;font-family:ui-monospace,monospace;font-size:11px}
+#readouts .big{font-size:28px;color:var(--beacon);display:block;margin-top:5px;font-weight:bold}
+
+#mode-caption{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:.55;white-space:nowrap}
+
+/* === F. SLIDERS === */
+#time-wrap{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);width:440px;text-align:center;pointer-events:auto;visibility:hidden}
+#time-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:12px}
+#play-toggle{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:var(--ink);
+  padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:2px;cursor:pointer;transition:.3s}
+#play-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
+#time{-webkit-appearance:none;appearance:none;width:100%;height:1px;background:rgba(255,255,255,0.3);outline:none}
+#time::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer}
+#time-label{margin-top:15px;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:2px}
+
+#depth-wrap{position:absolute;left:40px;top:50%;transform:translateY(-50%);height:50%;display:none;flex-direction:column;align-items:center;justify-content:space-between;gap:12px;pointer-events:auto}
+#depth{-webkit-appearance:none;appearance:none;writing-mode:vertical-lr;width:1px;height:100%;background:rgba(255,255,255,0.3);outline:none}
+#depth::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--beacon);border:2px solid #fff;cursor:pointer;box-shadow:0 0 15px var(--beacon)}
+
+#hover{position:absolute;pointer-events:none;padding:12px 14px;background:rgba(4,16,30,.95);border:1px solid var(--beacon);font-family:ui-monospace,monospace;font-size:11px;line-height:1.6;display:none;z-index:100;max-width:280px}
+#hover .hv-depth{color:var(--beacon)}
+
+#load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
+</style>
+</head>
+
+<body>
+<canvas id="scene"></canvas>
+<div id="hover"></div>
+
+<div id="ui">
+  <header>
+    <h1>Living Atlantic</h1>
+    <div class="scene-label">SCENE I &mdash; THE COLUMN</div>
+    <div id="dynamic-label"></div>
+  </header>
+
+  <div id="intro">
+    <div class="info-box">
+      <strong>The Column</strong><br>
+      The Atlantic moves as a vertical structure: warm water flowing north
+      near the surface, colder water returning south in the deep. This is not
+      a single current but a whole column, and that column can strengthen or
+      weaken. Below, the real shape of that transport at 26&deg;N &mdash; and
+      what remains when we keep only its two dominant modes.
+    </div>
+    <div class="info-box soft" id="howto">
+      Here you can switch condition (C1&middot;C2&middot;C3), scrub the months,
+      and slide through depth &mdash; in C3, hover the column and listen to its pulse.
+    </div>
+    <div class="info-box" id="c3-guide"></div>
+  </div>
+
+  <div id="conditions">
+    <button id="b-c1" class="active">C1 &middot; STATIC</button>
+    <button id="b-c2">C2 &middot; DYNAMIC</button>
+    <button id="b-c3">C3 &middot; EXPERIENTIAL</button>
+  </div>
+
+  <div id="legend" data-hint="legend">
+    <div class="leg-item"><span class="swatch" style="background:var(--flow-north)"></span> Northward Upper Flow</div>
+    <div class="leg-item"><span class="swatch" style="background:var(--return-deep)"></span> Deep Return Flow</div>
+    <div class="leg-item"><span class="swatch" style="background:var(--beacon)"></span> Now Marker</div>
+  </div>
+
+  <div id="readouts" data-hint="readout">
+    <div class="row">AMOC INTENSITY (MAX &Psi;)<span class="big" id="peak-sv">&mdash; Sv</span></div>
+  </div>
+
+  <div id="mode-caption" data-hint="modes"></div>
+
+  <div id="time-wrap" data-hint="time">
+    <input type="range" id="time" min="0" max="239" value="0" step="1">
+    <div id="time-row">
+      <button id="play-toggle">&#10074;&#10074; PAUSE &amp; SCRUB</button>
+      <div id="time-label">&mdash;</div>
+    </div>
+  </div>
+
+  <div id="depth-wrap" data-hint="depth">
+    <span class="scene-label" style="opacity:1;color:var(--beacon)">SURFACE</span>
+    <input type="range" id="depth" min="0" max="306" value="52" step="1" orient="vertical">
+    <span class="scene-label" id="depth-max-label">6000M</span>
+  </div>
+
+  <div id="load-error">
+    BUNDLE NOT FOUND<br>
+    run <b>npm run dev</b> and open http://localhost:5173/columncopy.html<br>
+    (data expected at /data/amoc_translate_bundle.json)
+  </div>
+</div>
+
+<script>
+/* === JS LOGIC — DATA DRIVEN ===
+   Every on-screen value is traceable to amoc_translate_bundle.json:
+   - Shape:  pca.mean_profile + pc1(t)*pca.recon_basis.pc1 + pc2(t)*pca.recon_basis.pc2   (Sv)
+   - Motion: particle speed ∝ local Ψ (Sv) at each depth
+   - Audio:  heartbeat — PC1 → pulse rate & fullness (C3 only)
+   - Captions: pca.var_explained / pca.cumulative_2pc
+*/
+
+// NOTE canvas 2D: CSS variables non funzionano in fillStyle/strokeStyle,
+// quindi la palette è duplicata qui come costanti hex (uguali a :root).
+const COL = {
+  abyss:   '#010811',
+  north:   '#7fb4d9',
+  northHi: '#cfe8ff',
+  deep:    '#24507a',
+  beacon:  '#ffb35c'
+};
+
+const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+                'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+
+let PCA, TRAJ, DEPTH, NLEV, DMAX, B1, B2, dataLoaded = false;
+let peakIdx = 0, peakSv = 0, peakDepth = 0, zeroDepth = 0;   // derived from mean_profile
+let pc1min = 0, pc1max = 1;                                   // for audio normalization
+let W, H, cond = 'C1';
+let tFloat = 0;                                               // continuous time (months) for the morph
+
+const cv = document.getElementById('scene');
+const g  = cv.getContext('2d');
+const mouse = { x:-100, y:-100, lx:-100, ly:-100 };
+let particles = [];
+
+const timeEl  = document.getElementById('time');
+const depthEl = document.getElementById('depth');
+const hoverEl = document.getElementById('hover');
+
+// --- layout shared by draw() and the hover logic ---
+function layout(){
+  const topY = 150, botY = H - 180;
+  return { axisX: Math.round(W * 0.55), topY, botY, h: botY - topY };
+}
+const yOfDepth = (d, L) => L.topY + (d / DMAX) * L.h;
+
+// 1. Load bundle (served by Vite from public/ at /data/...)
+async function loadBundle(){
+  const urls = ['/data/amoc_translate_bundle.json',
+                './public/data/amoc_translate_bundle.json',
+                './amoc_translate_bundle.json'];
+  let B = null;
+  for (const u of urls){
+    try { const r = await fetch(u); if (r.ok){ B = await r.json(); break; } } catch(e){}
+  }
+  if (!B){
+    document.getElementById('load-error').style.display = 'block';
+    console.error('Bundle missing — expected at /data/amoc_translate_bundle.json (npm run dev)');
+    return;
+  }
+
+  PCA = B.pca; TRAJ = B.trajectory_monthly;
+  DEPTH = PCA.depth_m; NLEV = DEPTH.length; DMAX = DEPTH[NLEV-1];
+  B1 = PCA.recon_basis.pc1; B2 = PCA.recon_basis.pc2;
+
+  // Derived anchors — all from mean_profile, nothing invented:
+  // peak northward transport (16.81 Sv @ 1030 m) and the zero crossing (~4346 m)
+  PCA.mean_profile.forEach((v,i) => { if (v > peakSv){ peakSv = v; peakIdx = i; } });
+  peakDepth = DEPTH[peakIdx];
+  for (let i = peakIdx; i < NLEV; i++){
+    if (PCA.mean_profile[i] <= 0){ zeroDepth = DEPTH[i]; break; }
+  }
+  pc1min = Math.min(...TRAJ.pc1); pc1max = Math.max(...TRAJ.pc1);
+
+  // UI driven by the bundle, not hard-coded
+  timeEl.max = TRAJ.time.length - 1;
+  depthEl.max = NLEV - 1;
+  depthEl.value = peakIdx;
+  document.getElementById('depth-max-label').textContent = Math.round(DMAX) + 'M';
+  document.getElementById('mode-caption').innerHTML =
+    'TWO MODES CAPTURE ' + (PCA.cumulative_2pc*100).toFixed(1) +
+    '% OF ALL VARIABILITY &middot; PC1 ALONE ' + (PCA.var_explained[0]*100).toFixed(1) + '%';
+
+  buildGuideAndHints();
+  dataLoaded = true;
+  seedParticles();
+  requestAnimationFrame(draw);
+}
+
+// C3 guide + hover hints — every number comes from the bundle
+const HINTS = {};
+function buildGuideAndHints(){
+  const v1  = (PCA.var_explained[0]*100).toFixed(1);
+  const v2  = (PCA.var_explained[1]*100).toFixed(1);
+  const cum = (PCA.cumulative_2pc*100).toFixed(1);
+  const nT  = TRAJ.time.length;
+  const t0  = fmtMonth(TRAJ.time[0]), t1 = fmtMonth(TRAJ.time[nT-1]);
+
+  document.getElementById('c3-guide').innerHTML =
+    '<b>READING THIS SCENE</b><br><br>' +
+    '<div class="g-row"><b>THE CURVE</b> &mdash; cumulative northward transport &Psi;(z), in Sverdrups. Its maximum (' +
+      peakSv.toFixed(2) + ' Sv at ' + Math.round(peakDepth) + ' m in the mean state) is the AMOC intensity.</div>' +
+    '<div class="g-row"><b>THE PARTICLES</b> &mdash; water parcels; their speed follows the local transport. Light blue: the upper limb. Dark blue: the deep return, below ~' +
+      Math.round(zeroDepth) + ' m.</div>' +
+    '<div class="g-row"><b>THE PULSE</b> &mdash; a heartbeat driven by PC1, the intensity mode: stronger circulation &rarr; faster, fuller beat.</div>' +
+    '<div class="g-row"><b>THE MODES (right)</b> &mdash; EOF1 (' + v1 + '%) and EOF2 (' + v2 +
+      '%): the two shapes that rebuild ' + cum + '% of twenty years of profiles.</div>' +
+    '<div class="g-row"><b>TIME</b> &mdash; ' + nT + ' months, ' + t0 + ' &rarr; ' + t1 +
+      ' (RAPID 26&deg;N). Plays by itself; take control below.</div>' +
+    '<div class="g-row"><b>DEPTH</b> &mdash; ' + NLEV + ' levels, 0&ndash;' + Math.round(DMAX) +
+      ' m. The slider moves the beacon on both plots.</div>' +
+    '<span style="opacity:.5">Hover anything on screen to learn what it is.</span>';
+
+  HINTS.time = '<span class="hv-depth">TIME &mdash; ' + nT + ' MONTHS</span><br>' +
+    t0 + ' &rarr; ' + t1 + ', monthly means from the RAPID array at 26&deg;N. ' +
+    'AUTO advances by itself; the button (or dragging the slider) switches to manual scrubbing.';
+  HINTS.depth = '<span class="hv-depth">DEPTH &mdash; ' + NLEV + ' LEVELS</span><br>' +
+    '0 to ' + Math.round(DMAX) + ' m. Moves the amber beacon along the profile and the mode shapes, and the glow of the nearby particles.';
+  HINTS.readout = '<span class="hv-depth">AMOC INTENSITY</span><br>' +
+    'The maximum of &Psi;(depth) in the current month &mdash; the total northward flow of the upper limb. ' +
+    '1 Sv = 10&#8310; m&sup3;/s, about fifty Amazon rivers.';
+  HINTS.legend = '<span class="hv-depth">COLOURS</span><br>' +
+    'Light blue: warm water moving north near the surface. Dark blue: the cold return flow, below ~' +
+    Math.round(zeroDepth) + ' m. Amber: the &ldquo;now&rdquo; marker &mdash; where you are in depth.';
+  HINTS.modes = '<span class="hv-depth">THE TWO MODES &mdash; ' + cum + '%</span><br>' +
+    'EOF1 (' + v1 + '%): the whole column strengthening or weakening together &mdash; the AMOC intensity. ' +
+    'EOF2 (' + v2 + '%): vertical redistribution of the flow. ' +
+    'Everything you see is mean + PC1&middot;EOF1 + PC2&middot;EOF2 &mdash; nothing else.';
+}
+
+function seedParticles(){
+  if (!dataLoaded) return;                       // resize can fire before the data arrives
+  particles = [];
+  for (let k = 0; k < 1800; k++)
+    particles.push({
+      i: Math.floor(Math.random()*NLEV),
+      x: Math.random()*W,
+      s: 0.6 + Math.random()*1.2,
+      a: 0.10 + Math.random()*0.30
+    });
+}
+
+// Reconstruct Ψ(depth) at continuous time t (lerp between months → smooth morph)
+function reconstruct(t){
+  const i0 = Math.floor(t), i1 = Math.min(i0+1, TRAJ.pc1.length-1), f = t - i0;
+  const a = TRAJ.pc1[i0]*(1-f) + TRAJ.pc1[i1]*f;
+  const b = TRAJ.pc2[i0]*(1-f) + TRAJ.pc2[i1]*f;
+  return PCA.mean_profile.map((m,i) => m + a*B1[i] + b*B2[i]);
+}
+
+function fmtMonth(ym){                            // "2004-04" → "APRIL 2004"
+  const [y,m] = ym.split('-');
+  return MONTHS[+m-1] + ' ' + y;
+}
+
+// 2. Rendering
+function draw(){
+  if (!dataLoaded) return;
+  const L = layout();
+  const svScale = Math.min(24, (W * 0.22) / Math.max(peakSv, 1));
+
+  // Background: full clear in C1, alpha fade in C2/C3 (particle trails)
+  if (cond === 'C1'){ g.fillStyle = COL.abyss; g.fillRect(0,0,W,H); }
+  else { g.globalAlpha = 0.15; g.fillStyle = COL.abyss; g.fillRect(0,0,W,H); g.globalAlpha = 1; }
+
+  // Double cursor lag
+  mouse.lx += (mouse.x - mouse.lx) * 0.15;
+  mouse.ly += (mouse.y - mouse.ly) * 0.15;
+
+  // Time: C1 = mean state; C2/C3 = the monthly reconstruction
+  // (AUTO advances by itself; MANUAL leaves the slider to the user)
+  let prof;
+  if (cond === 'C1'){
+    prof = PCA.mean_profile.slice();
+  } else {
+    if (playing){
+      tFloat += 0.05;                             // ~80 s per full 2004–2024 pass
+      if (tFloat > TRAJ.pc1.length - 1) tFloat = 0;
+      timeEl.value = Math.round(tFloat);
+    }
+    document.getElementById('time-label').textContent = fmtMonth(TRAJ.time[Math.round(tFloat)]);
+    prof = reconstruct(tFloat);
+  }
+  const sIdx = +depthEl.value;
+
+  // Intensity = max Ψ, straight from the reconstructed profile (Sv). No scaling factors.
+  const maxPsi = Math.max(...prof);
+  document.getElementById('peak-sv').textContent = maxPsi.toFixed(2) + ' Sv';
+
+  // Zero crossing of the current profile (start of the deep return flow)
+  let zIdx = NLEV - 1;
+  for (let i = peakIdx; i < NLEV; i++){ if (prof[i] <= 0){ zIdx = i; break; } }
+
+  // Horizontal grid: depth-aligned lines in C1 (publication style),
+  // soft 60 px texture in C2/C3
+  if (cond === 'C1'){
+    g.strokeStyle = 'rgba(255,255,255,0.05)';
+    [0, 500, 1000, 2000, 3000, 4000, 5000, Math.round(DMAX)].forEach(d => {
+      const y = yOfDepth(d, L);
+      g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+    });
+  } else {
+    const gridGrad = g.createLinearGradient(0,0,0,H);
+    gridGrad.addColorStop(0,'rgba(255,255,255,0)');
+    gridGrad.addColorStop(0.3,'rgba(255,255,255,0.04)');
+    gridGrad.addColorStop(0.7,'rgba(255,255,255,0.04)');
+    gridGrad.addColorStop(1,'rgba(255,255,255,0)');
+    g.strokeStyle = gridGrad;
+    for (let y = 0; y < H; y += 60){ g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+  }
+
+  // Axis (Ψ = 0) & depth ticks — 0 / 500 / 1000 / 3000 / 5000 m
+  g.strokeStyle = 'rgba(255,255,255,0.12)';
+  g.beginPath(); g.moveTo(L.axisX, L.topY); g.lineTo(L.axisX, L.botY); g.stroke();
+  g.font = '10px ui-monospace,monospace';
+  g.fillStyle = 'rgba(255,255,255,0.35)';
+  g.textAlign = 'right';
+  [0, 500, 1000, 3000, 5000].forEach(d => {
+    const y = yOfDepth(d, L);
+    g.fillText(d + ' M', L.axisX - 14, y + 3);
+    g.strokeStyle = 'rgba(255,255,255,0.15)';
+    g.beginPath(); g.moveTo(L.axisX - 8, y); g.lineTo(L.axisX, y); g.stroke();
+  });
+  // Sv ticks along the bottom
+  g.textAlign = 'center';
+  [0, 5, 10, 15].forEach(sv => {
+    const x = L.axisX + sv * svScale;
+    g.fillText(sv === 0 ? '0 SV' : '+' + sv, x, L.botY + 18);
+  });
+  g.textAlign = 'left';
+
+  // Particles (C2/C3): speed ∝ local Ψ (Sv), colour by direction of the limb
+  if (cond !== 'C1'){
+    g.globalCompositeOperation = 'lighter';
+    for (const p of particles){
+      const sv = prof[p.i] || 0;
+      const y  = yOfDepth(DEPTH[p.i], L);
+      if (cond === 'C3'){                          // the medium reacts to presence
+        const dx = mouse.x - p.x, dy = mouse.y - y;
+        if (Math.hypot(dx,dy) < 100) p.x -= dx * 0.015;
+      }
+      p.x += sv * 0.25 + (sv >= 0 ? 0.05 : -0.05);
+      if (p.x > W + 10) p.x = -10;
+      if (p.x < -10)    p.x = W + 10;
+      const glow = Math.max(0, 1 - Math.abs(p.i - sIdx)/40);
+      g.fillStyle = p.i < zIdx ? COL.north : COL.deep;
+      g.globalAlpha = Math.min(1, p.a + glow*0.6);
+      g.beginPath(); g.arc(p.x, y, p.s + glow*2, 0, Math.PI*2); g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+    g.globalAlpha = 1;
+    updateAudio();
+  }
+
+  // Profile curve Ψ(depth): light at the surface → cooler in the deep return
+  const yZero = yOfDepth(DEPTH[zIdx], L);
+  const curveGrad = g.createLinearGradient(0, L.topY, 0, L.botY);
+  curveGrad.addColorStop(0, COL.northHi);
+  curveGrad.addColorStop(Math.max(0.01, Math.min(0.99,(yZero - L.topY)/L.h - 0.05)), COL.north);
+  curveGrad.addColorStop(Math.min(1, (yZero - L.topY)/L.h + 0.05), COL.deep);
+  curveGrad.addColorStop(1, COL.deep);
+  g.beginPath();
+  g.strokeStyle = curveGrad; g.lineWidth = 3; g.lineJoin = 'round';
+  prof.forEach((sv,i) => {
+    const x = L.axisX + sv*svScale, y = yOfDepth(DEPTH[i], L);
+    i === 0 ? g.moveTo(x,y) : g.lineTo(x,y);
+  });
+  g.stroke();
+
+  // Beacon on the curve at the slider depth (C2/C3)
+  if (cond !== 'C1'){
+    const x = L.axisX + prof[sIdx]*svScale, y = yOfDepth(DEPTH[sIdx], L);
+    g.fillStyle = COL.beacon; g.shadowBlur = 20; g.shadowColor = COL.beacon;
+    g.beginPath(); g.arc(x, y, 6, 0, Math.PI*2); g.fill();
+    g.shadowBlur = 0;
+  }
+
+  // Linked view (right): the two mode shapes eof1/eof2 (display loadings),
+  // with a synchronized marker at the slider depth (Munzner: coordinated views)
+  drawModes(L, sIdx);
+
+  drawCursor();
+  requestAnimationFrame(draw);
+}
+
+let eofScale = null;
+function drawModes(L, sIdx){
+  if (eofScale === null){
+    const m = Math.max(...PCA.eof1.map(Math.abs), ...PCA.eof2.map(Math.abs));
+    eofScale = 60 / (m || 1);
+  }
+  const cx = W - 170;
+  g.strokeStyle = 'rgba(255,255,255,0.08)';
+  g.beginPath(); g.moveTo(cx, L.topY); g.lineTo(cx, L.botY); g.stroke();
+
+  const trace = (arr, color, alpha) => {
+    g.beginPath(); g.strokeStyle = color; g.globalAlpha = alpha; g.lineWidth = 1.5;
+    arr.forEach((v,i) => {
+      const x = cx + v*eofScale, y = yOfDepth(DEPTH[i], L);
+      i === 0 ? g.moveTo(x,y) : g.lineTo(x,y);
+    });
+    g.stroke(); g.globalAlpha = 1;
+  };
+  trace(PCA.eof1, COL.north, 0.55);
+  trace(PCA.eof2, COL.deep,  0.55);
+
+  g.font = '9px ui-monospace,monospace';
+  g.fillStyle = 'rgba(255,255,255,0.35)';
+  g.textAlign = 'center';
+  g.fillText('MODE SHAPES', cx, L.topY - 22);
+  g.fillText('EOF1 ' + (PCA.var_explained[0]*100).toFixed(1) + '%  ·  EOF2 ' +
+             (PCA.var_explained[1]*100).toFixed(1) + '%', cx, L.topY - 10);
+  g.textAlign = 'left';
+
+  if (cond !== 'C1'){
+    const x = cx + PCA.eof1[sIdx]*eofScale, y = yOfDepth(DEPTH[sIdx], L);
+    g.fillStyle = COL.beacon;
+    g.beginPath(); g.arc(x, y, 3.5, 0, Math.PI*2); g.fill();
+  }
+}
+
+// 3. Audio — the heartbeat (C3 only): PC1 → pulse rate & fullness
+// (Hermann, Hunt & Neuhoff 2011: rhythm → intensity)
+let AC = null, osc = null, pulse = null, master = null, nextBeat = 0;
+
+function initAudio(){                              // must be called from a user gesture
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  osc = AC.createOscillator(); osc.type = 'sine'; osc.frequency.value = 55;
+  pulse = AC.createGain();  pulse.gain.value = 0;
+  master = AC.createGain(); master.gain.value = 0.5;
+  osc.connect(pulse); pulse.connect(master); master.connect(AC.destination);
+  osc.start();
+  nextBeat = AC.currentTime + 0.2;
+}
+
+function updateAudio(){
+  if (cond !== 'C3' || !AC || AC.state !== 'running') return;
+  const i = Math.round(tFloat);
+  const norm = (TRAJ.pc1[i] - pc1min) / (pc1max - pc1min);   // 0 = weakest, 1 = strongest
+  const bpm = 40 + norm*40;                                   // pulse rate ∝ PC1
+  const now = AC.currentTime;
+  if (now >= nextBeat){
+    const fullness = 0.25 + norm*0.55;                        // pulse fullness ∝ PC1
+    pulse.gain.cancelScheduledValues(now);
+    pulse.gain.setTargetAtTime(fullness, now, 0.015);         // attack
+    pulse.gain.setTargetAtTime(0, now + 0.07, 0.10);          // decay
+    osc.frequency.setTargetAtTime(50 + norm*15, now, 0.05);
+    nextBeat = now + 60/bpm;
+  }
+}
+
+function stopAudio(){
+  if (AC){ AC.close(); AC = null; osc = pulse = master = null; }
+}
+
+// 4. Cursor — central dot + lagging ring (constant across all conditions)
+function drawCursor(){
+  g.fillStyle = '#fff';
+  g.beginPath(); g.arc(mouse.x, mouse.y, 2.5, 0, Math.PI*2); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,0.4)'; g.lineWidth = 1;
+  g.beginPath(); g.arc(mouse.lx, mouse.ly, 16, 0, Math.PI*2); g.stroke();
+}
+
+// 5. Wiring
+let playing = true;                               // AUTO by default in C2/C3
+function setPlaying(p){
+  playing = p;
+  document.getElementById('play-toggle').innerHTML =
+    p ? '&#10074;&#10074; PAUSE &amp; SCRUB' : '&#9654; RESUME AUTO';
+}
+
+function setCond(c){
+  cond = c;
+  document.querySelectorAll('#conditions button').forEach(b => b.classList.remove('active'));
+  document.getElementById('b-' + c.toLowerCase()).classList.add('active');
+  document.getElementById('time-wrap').style.visibility = c === 'C1' ? 'hidden' : 'visible';
+  document.getElementById('depth-wrap').style.display  = c === 'C1' ? 'none' : 'flex';
+  // the intro column slides right when the depth slider appears (no overlap)
+  document.getElementById('intro').style.left = c === 'C1' ? '50px' : '104px';
+  // in C3 the how-to box gives way to the full reading guide
+  document.getElementById('c3-guide').style.display = c === 'C3' ? 'block' : 'none';
+  document.getElementById('howto').style.display    = c === 'C3' ? 'none' : 'block';
+  if (c !== 'C1') setPlaying(true);               // entering C2/C3 always restarts the flow of time
+  if (c !== 'C3'){
+    stopAudio();
+    hoverEl.style.display = 'none';
+    document.getElementById('dynamic-label').textContent = '';
+  }
+}
+
+// Hover micro-text (C3): every part of the scene explains itself
+function showHoverBox(html){
+  hoverEl.innerHTML = html;
+  hoverEl.style.display = 'block';
+  hoverEl.style.left = Math.min(W - 300, mouse.x + 20) + 'px';
+  hoverEl.style.top  = Math.min(H - 120, mouse.y + 20) + 'px';
+}
+
+function updateHover(e){
+  if (cond !== 'C3' || !dataLoaded){ hoverEl.style.display = 'none'; return; }
+  const L = layout();
+
+  // 1. UI elements (sliders, readout, legend, caption) declare a data-hint key
+  const hintEl = e && e.target && e.target.closest ? e.target.closest('[data-hint]') : null;
+  if (hintEl && HINTS[hintEl.dataset.hint]){
+    showHoverBox(HINTS[hintEl.dataset.hint]);
+    document.getElementById('dynamic-label').textContent = 'PHASE: READING THE INSTRUMENTS';
+    return;
+  }
+
+  // 2. The mode-shapes plot on the right
+  if (Math.abs(mouse.x - (W - 170)) < 90 && mouse.y >= L.topY - 30 && mouse.y <= L.botY){
+    showHoverBox(HINTS.modes);
+    document.getElementById('dynamic-label').textContent = 'PHASE: THE TWO MODES';
+    return;
+  }
+
+  // 3. The column itself
+  if (mouse.y < L.topY || mouse.y > L.botY ||
+      mouse.x < L.axisX - 120 || mouse.x > L.axisX + 260){
+    hoverEl.style.display = 'none';
+    document.getElementById('dynamic-label').textContent = '';
+    return;
+  }
+  const d = (mouse.y - L.topY)/L.h * DMAX;
+  let idx = 0;                                    // nearest level (levels are non-uniform)
+  for (let i = 1; i < NLEV; i++)
+    if (Math.abs(DEPTH[i]-d) < Math.abs(DEPTH[idx]-d)) idx = i;
+
+  const prof = cond === 'C1' ? PCA.mean_profile : reconstruct(tFloat);
+  const sv = prof[idx];
+  let note, phase;
+  if (Math.abs(DEPTH[idx] - peakDepth) < 150){
+    note = 'peak northward transport, ~' + Math.round(peakSv) + ' Sv';
+    phase = 'THE CORE OF THE UPPER LIMB';
+  } else if (DEPTH[idx] >= zeroDepth){
+    note = 'the deep return flow';
+    phase = 'DEEP RETURN FLOW';
+  } else if (DEPTH[idx] < peakDepth){
+    note = 'warm upper limb, building with depth';
+    phase = 'NORTHWARD UPPER FLOW';
+  } else {
+    note = 'northward transport weakening with depth';
+    phase = 'BELOW THE CORE';
+  }
+  showHoverBox('<span class="hv-depth">' + Math.round(DEPTH[idx]) + ' M &middot; ' +
+    (sv >= 0 ? '+' : '') + sv.toFixed(2) + ' Sv</span><br>' + note);
+  document.getElementById('dynamic-label').textContent = 'PHASE: ' + phase;
+}
+
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  updateHover(e);
+});
+window.addEventListener('resize', () => {
+  W = cv.width = innerWidth; H = cv.height = innerHeight;
+  seedParticles();
+});
+
+timeEl.addEventListener('input', () => {          // scrubbing switches to manual mode
+  setPlaying(false);
+  tFloat = +timeEl.value;
+  if (dataLoaded)
+    document.getElementById('time-label').textContent = fmtMonth(TRAJ.time[Math.round(tFloat)]);
+});
+
+document.getElementById('play-toggle').onclick = () => setPlaying(!playing);
+
+document.getElementById('b-c1').onclick = () => setCond('C1');
+document.getElementById('b-c2').onclick = () => setCond('C2');
+document.getElementById('b-c3').onclick = () => {
+  setCond('C3');
+  initAudio();                                    // user gesture → audio allowed
+  if (AC.state === 'suspended') AC.resume();
+};
+
+// Start
+window.dispatchEvent(new Event('resize'));
+loadBundle();
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Living Atlantic — an experiential descent into the AMOC</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <!-- Entry overlay. Serves two purposes: sets the contemplative tone
+       (Scena I placeholder) and satisfies browser autoplay policies —
+       Tone.js can only start after a user gesture. -->
+  <div id="entry" class="entry">
+    <div class="entry-inner">
+      <p class="entry-eyebrow">A descent in five scenes</p>
+      <h1 class="entry-title">Living Atlantic</h1>
+      <p class="entry-sub">
+        Twenty years of the Atlantic Meridional Overturning Circulation,
+        observed at 26°N — made audible and visible.
+      </p>
+      <button id="enter-btn" class="enter-btn">Begin the descent</button>
+      <p class="entry-note">Headphones recommended · ~5 minutes</p>
+    </div>
+  </div>
+
+  <!-- The experience -->
+  <main id="stage" class="stage" hidden>
+    <canvas id="scene-canvas"></canvas>
+
+    <!-- Frame of reference per la Scena III: etichette agli estremi dell'asse PC1.
+         Testo HTML sopra il canvas: nitido e governabile via CSS. -->
+    <div id="axis-scaffold" class="axis-scaffold" hidden>
+      <span class="axis-label axis-left">weaker circulation ⟵</span>
+      <span class="axis-label axis-right">⟶ stronger circulation</span>
+      <span id="year-big" class="year-big"></span>
+    </div>
+
+    <header class="hud hud-top">
+      <span id="scene-label" class="scene-label">Scena III — The engine room</span>
+      <button id="audio-toggle" class="audio-toggle" aria-pressed="true">sound on</button>
+    </header>
+
+    <footer class="hud hud-bottom">
+      <div class="readout">
+        <span id="date-readout" class="date-readout">2004-04</span>
+        <span id="pc1-readout" class="pc1-readout"></span>
+      </div>
+      <input id="time-scrub" class="time-scrub" type="range"
+             min="0" max="239" step="1" value="0"
+             aria-label="Scrub through the observational record" />
+    </footer>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

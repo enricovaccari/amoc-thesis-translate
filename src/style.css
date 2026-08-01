@@ -1,0 +1,150 @@
+/* ============================================================
+   Living Atlantic — style
+   Palette is semantic, not decorative: the experience is a
+   descent into the deep North Atlantic.
+     --abyss      #04101e   background, the deep ocean
+     --fog        #33506e   manifold cloud (the space of possible states)
+     --current    #7fb4d9   the trajectory (twenty years of system states)
+     --beacon     #ffb35c   the "now" marker — a submersible's lamp
+     --scar       #a34b4b   the 2009–2010 anomaly (desaturated, not alarmist)
+   ============================================================ */
+
+:root {
+  --abyss: #04101e;
+  --fog: #33506e;
+  --current: #7fb4d9;
+  --beacon: #ffb35c;
+  --scar: #a34b4b;
+  --text: #c9d6e2;
+  --text-dim: #6d8199;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--abyss);
+  color: var(--text);
+  font-family: Georgia, 'Times New Roman', serif;
+  overflow: hidden;
+}
+
+/* ---------- Entry overlay (Scena I placeholder) ---------- */
+
+.entry {
+  position: fixed; inset: 0;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(ellipse at 50% -20%, #16324d 0%, var(--abyss) 60%);
+  z-index: 10;
+  transition: opacity 1.8s ease, visibility 1.8s;
+}
+.entry.leaving { opacity: 0; visibility: hidden; }
+
+.entry-inner { text-align: center; max-width: 34rem; padding: 2rem; }
+
+.entry-eyebrow {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 1.2rem;
+}
+.entry-title {
+  font-size: clamp(2.6rem, 7vw, 4.4rem);
+  font-weight: 400; letter-spacing: 0.01em;
+  color: #eaf2f8; margin-bottom: 1rem;
+}
+.entry-sub {
+  font-size: 1.05rem; line-height: 1.65; color: var(--text);
+  margin-bottom: 2.4rem; font-style: italic;
+}
+.enter-btn {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.8rem; letter-spacing: 0.18em; text-transform: uppercase;
+  background: none; color: var(--beacon);
+  border: 1px solid color-mix(in srgb, var(--beacon) 55%, transparent);
+  padding: 0.9rem 2.2rem; border-radius: 2rem; cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+.enter-btn:hover, .enter-btn:focus-visible {
+  background: var(--beacon); color: var(--abyss); outline: none;
+}
+.entry-note {
+  margin-top: 1.4rem; font-size: 0.78rem; color: var(--text-dim);
+  font-family: ui-monospace, monospace; letter-spacing: 0.06em;
+}
+
+/* ---------- Stage ---------- */
+
+.stage { position: fixed; inset: 0; }
+#scene-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.hud {
+  position: absolute; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.6rem; pointer-events: none;
+}
+.hud > * { pointer-events: auto; }
+.hud-top { top: 0; }
+.hud-bottom { bottom: 0; flex-direction: column; align-items: stretch; gap: 0.6rem; }
+
+.scene-label {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.audio-toggle {
+  font-family: ui-monospace, monospace; font-size: 0.72rem;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  background: none; border: 1px solid #2a4258; border-radius: 1.2rem;
+  color: var(--text-dim); padding: 0.35rem 0.9rem; cursor: pointer;
+}
+.audio-toggle[aria-pressed="true"] { color: var(--current); border-color: var(--current); }
+
+.readout {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: ui-monospace, monospace;
+}
+.date-readout { font-size: 1rem; color: #eaf2f8; letter-spacing: 0.06em; }
+.pc1-readout { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.08em; }
+
+/* The scrub: the single degree of freedom. The user is a witness,
+   not a pilot — they command time, never the system. */
+.time-scrub {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 2px; background: #22374b; border-radius: 1px;
+  cursor: pointer;
+}
+.time-scrub::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--beacon); border: none;
+}
+.time-scrub::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--beacon); border: none;
+}
+
+/* ---------- Frame of reference (Scena III) ---------- */
+
+.axis-scaffold { position: absolute; inset: 0; pointer-events: none; }
+.axis-scaffold[hidden] { display: none; }
+
+.axis-label {
+  position: absolute; bottom: 4.5rem;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.axis-left { left: 1.6rem; }
+.axis-right { right: 1.6rem; }
+
+/* L'anno grande: il "quando" accanto al "dove". */
+.year-big {
+  position: absolute; top: 1.4rem; left: 50%; transform: translateX(-50%);
+  font-family: Georgia, serif; font-size: 2.4rem; font-weight: 400;
+  color: #eaf2f8; opacity: 0.85; letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry { transition: none; }
+}

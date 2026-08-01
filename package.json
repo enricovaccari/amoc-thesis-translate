@@ -1,0 +1,33 @@
+{
+  "name": "amoc-thesis-translate",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Living Atlantic — experiential representation of AMOC instability (condition C3). MSc thesis, Tomorrow University.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+
+    "viz1-static": "vite --open /viz/viz1/thecolumn-static.html",
+    "viz1-exp": "vite --open /viz/viz1/thecolumn-experiential.html",
+    "viz1-tot": "vite --open /viz/viz1/thecolumn_tot.html",
+
+    "viz2-static": "vite --open /viz/viz2/theengine-static.html",
+    "viz2-exp": "vite --open /viz/viz2/theengine-experiential.html",
+    "viz2-tot": "vite --open /viz/viz2/theengine_tot.html",
+
+    "viz3-static": "vite --open /viz/viz3/thethreshold-static.html",
+    "viz3-exp": "vite --open /viz/viz3/thethreshold-experiential.html",
+    "viz3-tot": "vite --open /viz/viz3/thethreshold_tot.html",
+
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "d3": "^7.9.0",
+    "three": "0.128.0",
+    "tone": "^14.7.77"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

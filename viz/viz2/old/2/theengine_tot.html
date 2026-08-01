@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ==========================================================================
+© 2026 Enrico Vaccari — All rights reserved.
+MSc thesis research artefact ("Living Atlantic"), Tomorrow University (ToU).
+============================================================================
+
+DEMO FILE — NOT ADMINISTERED. Scene II ("The Engine Room") with all three
+conditions behind STATIC / DYNAMIC / EXPERIENTIAL buttons, same selector
+style and position as column_tot.html. The study files are:
+  theengine-static.html        (C1 — control group)
+  theengine-experiential.html  (C2+C3 — experimental group)
+This file exists so the conditions can be compared side by side in one place.
+
+  C1 · STATIC       the paper idiom: all 240 points, coloured by year,
+                    colour bar, axis labels from pca.var_explained. No
+                    motion, no hover, no line, no annotation.
+  C2 · DYNAMIC      the plane travelled: playback walks the months in order,
+                    amber marker, accumulating cloud, fading 18-month trail,
+                    speed / pause & scrub / time slider / month readout.
+  C3 · EXPERIENTIAL adds the anomaly agitation (IsolationForest scores →
+                    marker/trail jitter, unnamed), hover dates, and the
+                    heartbeat sonification (OFF by default).
+
+Same bundle, same data, same colour ramp, same axis orientation (PC1 +right,
+PC2 +up, equal units) in every condition. The disclosure rule of the study
+files applies here too: nothing on screen states recurrence, cyclicity or
+seasonality, and no month is named unusual.
+=========================================================================== -->
+<title>The Engine Room — All Conditions (demo)</title>
+
+<style>
+:root{
+  --abyss:#010811;
+  --flow-north:#7fb4d9;
+  --flow-north-hi:#cfe8ff;
+  --return-deep:#24507a;
+  --excursion:#49b8a5;
+  --beacon:#ffb35c;
+  --ink:#e7f0f7;
+  --ink-soft:rgba(231,240,247,0.55);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--abyss);color:var(--ink);
+  font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;overflow:hidden;cursor:none}
+canvas{display:block;position:absolute;inset:0}
+#scene{z-index:0}
+#ui{position:absolute;inset:0;pointer-events:none;z-index:10}
+button{cursor:none}
+
+header{position:absolute;top:50px;left:50px}
+header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:28px;letter-spacing:12px;text-transform:uppercase}
+.scene-label{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:5px;opacity:.5;margin-top:10px}
+
+/* raised, with a very subtle breathing (item 9) */
+#hover-hint{position:absolute;top:142px;left:50%;transform:translateX(-50%);max-width:440px;text-align:center;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;display:none;
+  animation:hint-breathe 5.2s ease-in-out infinite}
+@keyframes hint-breathe{0%,100%{opacity:.28}50%{opacity:.52}}
+
+/* Mode selector (top-right) — same button style and position as column_tot */
+#conditions{position:absolute;top:50px;right:50px;display:flex;align-items:center;gap:10px;pointer-events:auto}
+#howto{max-width:200px;margin-right:14px;text-align:right;font-size:10px;line-height:1.5;letter-spacing:.5px;opacity:.5;font-style:italic}
+#conditions button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,0.1);color:var(--ink);padding:10px 18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.3s}
+#conditions button.active{background:var(--ink);color:var(--abyss);font-weight:700}
+
+#lang-toggle{position:absolute;top:96px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
+  padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.2s}
+#lang-toggle button:hover{background:rgba(255,255,255,.12)}
+#lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
+
+/* Optional emphasis switch (item 10) — OFF by default, all conditions */
+#anom-toggle{position:absolute;top:140px;right:50px;pointer-events:auto;z-index:60;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
+  padding:6px 12px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:2px;cursor:pointer;transition:.2s}
+#anom-toggle:hover{border-color:var(--excursion);color:var(--excursion)}
+#anom-toggle.on{border-color:rgba(73,184,165,.6);color:var(--excursion)}
+
+/* Shared context — ONE visual group centred over the composition (item 8) */
+#context-top{position:absolute;top:36px;left:50%;transform:translateX(-50%);
+  width:min(560px,60vw);text-align:center;pointer-events:none}
+#context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
+  color:var(--ink-soft);letter-spacing:.4px}
+#context-top #source{margin-top:8px;font-family:ui-monospace,monospace;font-size:8.5px;
+  letter-spacing:1.2px;color:var(--ink-soft);opacity:.8}
+
+.rail-box{background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:12px 14px;
+  font-size:10.5px;line-height:1.65}
+/* nudged up and left of the corner (item 7) */
+#reading-box{position:absolute;right:70px;bottom:40px;width:max-content;max-width:min(420px,34vw);
+  pointer-events:none}
+#reading-box .read-line{margin:4px 0;letter-spacing:.5px;font-size:9px;color:var(--ink-soft);white-space:nowrap}
+
+#controls{position:absolute;left:40px;bottom:122px;display:none;flex-direction:column;gap:8px;pointer-events:auto}
+.ctrl-group{display:flex;align-items:center;gap:10px}
+.ctrl-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;width:58px}
+.ctrl-seg{display:flex;gap:4px}
+.ctrl-seg button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);
+  padding:4px 7px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;cursor:pointer;transition:.2s;min-width:30px}
+.ctrl-seg button:hover{border-color:var(--beacon)}
+.ctrl-seg button.active{background:var(--beacon);color:var(--abyss);border-color:var(--beacon);font-weight:700}
+
+#readouts{position:absolute;left:40px;bottom:24px;font-family:ui-monospace,monospace;display:none}
+.ro-item{position:relative;display:flex;flex-direction:column;align-items:flex-start}
+.ro-label{font-size:11px;letter-spacing:1px;white-space:nowrap;margin:0;padding:0}
+.ro-item .big{font-size:28px;color:var(--beacon);font-weight:bold;margin:7px 0 0;padding:0;line-height:1}
+/* item 6: slow gentle breathing; the audio beat additionally spikes its scale */
+#beat-dot{position:absolute;left:-15px;top:2px;width:9px;height:9px;border-radius:50%;background:var(--beacon);
+  pointer-events:none;animation:dot-breathe 3.8s ease-in-out infinite}
+@keyframes dot-breathe{0%,100%{opacity:.18}50%{opacity:.5}}
+
+#time-wrap{position:absolute;bottom:84px;left:50%;transform:translateX(-50%);width:min(52vw,640px);text-align:center;pointer-events:auto;visibility:hidden}
+#time-track{display:flex;align-items:center;gap:12px}
+#time-start,#time-end{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;opacity:.45;white-space:nowrap}
+#time-row{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:22px}
+#play-toggle,#sound-toggle{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:var(--ink);
+  padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:2px;cursor:pointer;transition:.3s}
+#play-toggle:hover,#sound-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
+#sound-toggle.on{border-color:rgba(255,179,92,.6);color:var(--beacon)}
+#time-rail{position:relative;flex:1;display:flex;align-items:center}
+#time{-webkit-appearance:none;appearance:none;flex:1;width:100%;height:1px;background:rgba(255,255,255,0.3);outline:none}
+#time::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;cursor:pointer}
+
+#hover{position:absolute;pointer-events:none;display:none;z-index:100;
+  background:rgba(4,16,30,.96);border:1px solid rgba(255,179,92,.5);
+  font-family:ui-monospace,monospace;font-size:11px;letter-spacing:1.5px;color:var(--beacon);
+  padding:6px 10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+  will-change:transform;opacity:1;transition:opacity .3s}
+#cursor-dot{width:5px;height:5px;background:#fff}
+#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+  transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s,width .2s,height .2s}
+
+#load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
+
+#credit{position:fixed;bottom:6px;left:40px;z-index:55;pointer-events:none;
+  font-family:ui-monospace,monospace;font-size:8px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--ink);opacity:.35}
+
+#splash{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%);
+  pointer-events:auto;transition:opacity 1.2s;text-align:center;overflow:hidden}
+#bokeh{position:absolute;inset:0;z-index:-1;display:block}
+#splash h2,#splash .splash-scene,#splash .splash-click{position:relative;z-index:1}
+#splash h2{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;text-transform:uppercase;
+  font-size:clamp(38px,6vw,72px);letter-spacing:.35em;text-indent:.35em}
+#splash .splash-scene{margin-top:26px;font-size:14px;letter-spacing:8px;text-indent:8px;opacity:.6;text-transform:uppercase}
+#splash .splash-click{margin-top:70px;font-size:11px;letter-spacing:4px;text-indent:4px;color:var(--beacon);
+  text-transform:uppercase;animation:splash-blink 2.6s ease-in-out infinite}
+@keyframes splash-blink{0%,100%{opacity:.25}50%{opacity:1}}
+body.pre-start #ui{opacity:0}
+#ui{transition:opacity 1.2s}
+
+#intro-screen{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
+  text-align:center;background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
+#intro-screen .panel{max-width:560px;padding:0 32px}
+#intro-screen h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;
+  letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
+#intro-screen p{font-size:13px;line-height:1.9;color:var(--ink-soft);margin:0 0 18px}
+#intro-screen p.anchor-question{color:var(--ink);border:1px solid rgba(255,255,255,.14);
+  padding:18px 22px;margin:30px 0;line-height:1.9}
+#intro-screen button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);
+  color:var(--ink);padding:13px 30px;font-family:ui-monospace,monospace;font-size:11px;
+  letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:.3s;margin-top:8px}
+#intro-screen button:hover{background:rgba(255,255,255,.12)}
+</style>
+</head>
+
+<body class="pre-start">
+<canvas id="scene"></canvas>
+<div id="hover"></div>
+<div id="cursor-ring"></div>
+<div id="cursor-dot"></div>
+
+<div id="splash">
+  <canvas id="bokeh"></canvas>
+  <h2>Living Atlantic</h2>
+  <div class="splash-scene" id="splash-scene">Scene II &mdash; The Engine Room</div>
+  <div class="splash-click" id="splash-click">Click anywhere to start exploring</div>
+</div>
+
+<div id="intro-screen"><div class="panel" id="intro-screen-panel"></div></div>
+
+<div id="lang-toggle">
+  <button id="lang-en" class="active">EN</button>
+  <button id="lang-it">IT</button>
+</div>
+<button id="anom-toggle" type="button"></button>
+
+<div id="ui">
+  <header>
+    <h1>Living Atlantic</h1>
+    <div class="scene-label" id="scene-label">SCENE II &mdash; THE ENGINE ROOM</div>
+  </header>
+
+  <div id="conditions">
+    <div id="howto"></div>
+    <button id="b-c1" class="active">C1 &middot; STATIC</button>
+    <button id="b-c2">C2 &middot; DYNAMIC</button>
+    <button id="b-c3">C3 &middot; EXPERIENTIAL</button>
+  </div>
+
+  <div id="hover-hint"></div>
+
+  <div id="context-top">
+    <div id="describes"></div>
+    <div id="source"></div>
+  </div>
+
+  <div id="controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label" id="lbl-speed">SPEED</span>
+      <div class="ctrl-seg" id="speed-seg">
+        <button data-speed="0.5">&frac12;&times;</button>
+        <button data-speed="1" class="active">1&times;</button>
+        <button data-speed="2">2&times;</button>
+        <button data-speed="3">3&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="readouts">
+    <div class="ro-item">
+      <span class="ro-label"><span id="beat-dot"></span><span id="lbl-month">CURRENT MONTH</span></span>
+      <span class="big" id="month-big">&mdash;</span>
+    </div>
+  </div>
+
+  <div id="time-wrap">
+    <div id="time-track">
+      <span id="time-start">&mdash;</span>
+      <div id="time-rail">
+        <input type="range" id="time" min="0" max="239" value="0" step="1">
+      </div>
+      <span id="time-end">&mdash;</span>
+    </div>
+    <div id="time-row">
+      <button id="play-toggle">&#10074;&#10074; PAUSE &amp; SCRUB</button>
+      <button id="sound-toggle" style="display:none"></button>
+    </div>
+  </div>
+
+  <div id="reading-box" class="rail-box"></div>
+
+  <div id="load-error"></div>
+</div>
+
+<div id="credit">&copy; 2026 Enrico Vaccari &middot; MSc Thesis &middot; Tomorrow University</div>
+
+<script type="module">
+import { loadBundle } from '../../shared/bundle.js';
+import { COL, INK, FONT } from '../../shared/palette.js';
+import { introHTML } from '../../shared/intro-engine.js';
+import { sourceHTML, describesHTML, readingLines } from '../../shared/context-engine.js';
+
+const STR = {
+en: {
+  doc_title:   'The Engine Room — All Conditions (demo)',
+  splash_scene:'Scene II — The Engine Room',
+  splash_click:'Click anywhere to start exploring',
+  scene_label: 'SCENE II &mdash; THE ENGINE ROOM',
+  howto:       'Play around with the different conditions, scrub the months, and watch the map fill up.',
+  b_c1: 'C1 &middot; STATIC', b_c2: 'C2 &middot; DYNAMIC', b_c3: 'C3 &middot; EXPERIENTIAL',
+  hover_hint:  'HOVER ANY MONTH TO READ ITS DATE',
+  month_label: 'CURRENT MONTH',
+  speed:       'SPEED',
+  pause:       '&#10074;&#10074; PAUSE &amp; SCRUB',
+  resume:      '&#9654; RESUME AUTO',
+  sound_off:   '&#9834; SOUND: OFF',
+  sound_on:    '&#9834; SOUND: ON',
+  emph_off:    '&#10022; EMPHASIS: OFF',
+  emph_on:     '&#10022; EMPHASIS: ON',
+  axis_pc1:    'PC1 &middot; {v1}% OF VARIANCE',
+  axis_pc2:    'PC2 &middot; {v2}% OF VARIANCE',
+  bar_label:   'YEAR',
+  header_line: 'LATENT STATE OF THE ATLANTIC &middot; {n} MONTHS &middot; {t0} &ndash; {t1}',
+  load_error:  'BUNDLE NOT FOUND<br>run <b>npm run dev</b><br>(data expected at /data/amoc_translate_bundle.json)',
+  months: ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+           'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'],
+},
+it: {
+  doc_title:   'La Sala Macchine — Tutte le Condizioni (demo)',
+  splash_scene:'Scena II — La Sala Macchine',
+  splash_click:'Clicca ovunque per iniziare a esplorare',
+  scene_label: 'SCENA II &mdash; LA SALA MACCHINE',
+  howto:       'Prova le diverse condizioni, scorri i mesi e osserva la mappa riempirsi.',
+  b_c1: 'C1 &middot; STATICA', b_c2: 'C2 &middot; DINAMICA', b_c3: 'C3 &middot; ESPERIENZIALE',
+  hover_hint:  'PASSA IL CURSORE SU UN MESE PER LEGGERNE LA DATA',
+  month_label: 'MESE CORRENTE',
+  speed:       'VELOCIT&Agrave;',
+  pause:       '&#10074;&#10074; PAUSA &amp; SCORRI',
+  resume:      '&#9654; RIPRENDI AUTO',
+  sound_off:   '&#9834; AUDIO: OFF',
+  sound_on:    '&#9834; AUDIO: ON',
+  emph_off:    '&#10022; ENFASI: OFF',
+  emph_on:     '&#10022; ENFASI: ON',
+  axis_pc1:    'PC1 &middot; {v1}% DELLA VARIANZA',
+  axis_pc2:    'PC2 &middot; {v2}% DELLA VARIANZA',
+  bar_label:   'ANNO',
+  header_line: 'STATO LATENTE DELL&rsquo;ATLANTICO &middot; {n} MESI &middot; {t0} &ndash; {t1}',
+  load_error:  'BUNDLE NON TROVATO<br>esegui <b>npm run dev</b><br>(dati attesi in /data/amoc_translate_bundle.json)',
+  months: ['GENNAIO','FEBBRAIO','MARZO','APRILE','MAGGIO','GIUGNO',
+           'LUGLIO','AGOSTO','SETTEMBRE','OTTOBRE','NOVEMBRE','DICEMBRE'],
+},
+};
+const DEFAULT_LANG = 'en';
+const urlLang = new URLSearchParams(location.search).get('lang');
+let lang = (urlLang === 'en' || urlLang === 'it') ? urlLang
+         : (localStorage.getItem('la-lang') === 'it' ? 'it' : DEFAULT_LANG);
+function T(key, vars){
+  let s = (STR[lang] && STR[lang][key]) ?? STR.en[key] ?? key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+function fmtMonth(ym){
+  const [y, m] = ym.split('-');
+  return T('months')[+m - 1] + ' ' + y;
+}
+
+/* Year colour ramp — IDENTICAL in all three conditions (deep → north →
+   northHi from the shared palette; perceptually ordered, not a rainbow). */
+const hexRgb = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+const RAMP = [hexRgb(COL.deep), hexRgb(COL.north), hexRgb(COL.northHi)];
+function rampColor(t){
+  const seg = t <= 0.5 ? [RAMP[0], RAMP[1], t * 2] : [RAMP[1], RAMP[2], (t - 0.5) * 2];
+  const c = seg[0].map((v, i) => Math.round(v + (seg[1][i] - v) * seg[2]));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* ============================== state ==================================== */
+let TRAJ = null, N = 0, dataLoaded = false;
+let cond = 'C1';
+let CLOUD = null, N5 = 0;                          // manifold_cloud.pc — finer stride
+let ctr1 = 0, ctr2 = 0;                            // cloud centroid (computed, never typed)
+let cloudEnergy = null;                            // per-cloud-point glow energy (C2/C3)
+let cloudLayer = null;                             // pre-rendered faint background cloud
+let emphOn = false;                                // item 10 — OFF by default
+let pc1min = 0, pc1max = 1;
+let anomIntensity = null;
+let W = 0, H = 0;
+let tFloat = 0;
+let playing = true;
+let speedMul = 1;
+let frame = 0;
+let beatEnv = 0, nextBeatT = 0;
+let V1PCT = '', V2PCT = '';
+const TRAIL_MONTHS = 18;
+
+const cv = document.getElementById('scene');
+const g  = cv.getContext('2d');
+const mouse = { x: -100, y: -100 };
+const timeEl = document.getElementById('time');
+const hoverEl = document.getElementById('hover');
+
+/* Equal-unit fit — ORIENTATION: PC1 +right, PC2 +up, identical in every
+   condition and identical to the two study files. */
+let fit = null;
+function computeFit(){
+  if (!CLOUD) return;
+  // Domain = the FULL extent of the finer cloud (superset of every monthly
+  // point) — identical in every condition and in both study files.
+  let pxMin = Infinity, pxMax = -Infinity, pyMin = Infinity, pyMax = -Infinity;
+  for (let i = 0; i < N5; i++){
+    const a = CLOUD.pc1[i], b = CLOUD.pc2[i];
+    if (a < pxMin) pxMin = a; if (a > pxMax) pxMax = a;
+    if (b < pyMin) pyMin = b; if (b > pyMax) pyMax = b;
+  }
+  const PAD = 14;
+  const x0 = pxMin - PAD, x1 = pxMax + PAD;
+  const y0 = pyMin - PAD, y1 = pyMax + PAD;
+  const mL = 110, mR = 110, mT = 190, mB = 210;    // room for C1 axis furniture too
+  const s = Math.min((W - mL - mR) / (x1 - x0), (H - mT - mB) / (y1 - y0));
+  const ox = mL + ((W - mL - mR) - (x1 - x0) * s) / 2;
+  const oy = mT + ((H - mT - mB) - (y1 - y0) * s) / 2;
+  fit = { s, x0, x1, y0, y1, ox, oy };
+  buildCloudLayer();
+}
+const SX = (p) => fit.ox + (p - fit.x0) * fit.s;
+const SY = (p) => fit.oy + (fit.y1 - p) * fit.s;
+
+/* Item 1 — the faint background cloud, pre-rendered once per resize. */
+function buildCloudLayer(){
+  if (!CLOUD || !fit) return;
+  const dpr = window.devicePixelRatio || 1;
+  cloudLayer = document.createElement('canvas');
+  cloudLayer.width = Math.round(W * dpr); cloudLayer.height = Math.round(H * dpr);
+  const c = cloudLayer.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.globalAlpha = 0.15;
+  for (let i = 0; i < N5; i++){
+    c.fillStyle = rampColor(i / (N5 - 1));
+    c.beginPath();
+    c.arc(SX(CLOUD.pc1[i]), SY(CLOUD.pc2[i]), 1.6, 0, Math.PI * 2);
+    c.fill();
+  }
+}
+/* Month → cloud-point range (chronological, same record). */
+function cloudRangeOf(m){
+  const a = Math.floor(m * N5 / N);
+  const b = Math.min(N5, Math.floor((m + 1) * N5 / N));
+  return [a, b];
+}
+/* Item 2 — the centroid: soft, luminous, cooler than the amber marker. */
+function drawCentroid(){
+  const cx = SX(ctr1), cy = SY(ctr2);
+  const cg = g.createRadialGradient(cx, cy, 0, cx, cy, 11);
+  cg.addColorStop(0, 'rgba(207,232,255,0.55)');
+  cg.addColorStop(1, 'rgba(207,232,255,0)');
+  g.fillStyle = cg;
+  g.beginPath(); g.arc(cx, cy, 11, 0, Math.PI * 2); g.fill();
+  g.fillStyle = COL.northHi; g.globalAlpha = 0.9;
+  g.beginPath(); g.arc(cx, cy, 2.5, 0, Math.PI * 2); g.fill();
+  g.globalAlpha = 1;
+}
+/* Item 10 — soft pulsing rings on flagged months (emphasis only, no labels). */
+function drawEmphasis(upTo){
+  if (!emphOn || !anomIntensity) return;
+  g.strokeStyle = COL.excursion;
+  g.lineWidth = 1.3;
+  const pulse = 0.62 + 0.38 * Math.sin(frame * 0.045);
+  for (let i = 0; i <= upTo; i++){
+    const lv = anomIntensity[i];
+    if (!lv) continue;
+    g.globalAlpha = (0.25 + 0.45 * lv) * pulse;
+    g.beginPath();
+    g.arc(SX(TRAJ.pc1[i]), SY(TRAJ.pc2[i]), 6, 0, Math.PI * 2);
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+
+function posAt(t){
+  const i0 = Math.floor(t), i1 = Math.min(i0 + 1, N - 1), f = t - i0;
+  const e = f * f * (3 - 2 * f);
+  return [
+    TRAJ.pc1[i0] + (TRAJ.pc1[i1] - TRAJ.pc1[i0]) * e,
+    TRAJ.pc2[i0] + (TRAJ.pc2[i1] - TRAJ.pc2[i0]) * e,
+  ];
+}
+
+function buildAnomalyIntensity(ANOM){
+  const out = new Float64Array(N);
+  if (!ANOM || !ANOM.clusters || !ANOM.clusters.length) return out;
+  const maxScore = Math.max(...ANOM.clusters.map(c => c.mean_anomaly_score));
+  const [Y0, M0] = TRAJ.time[0].split('-').map(Number);
+  const monthIdx = iso => {
+    const [y, m] = iso.split('-').map(Number);
+    return (y - Y0) * 12 + (m - M0);
+  };
+  for (const c of ANOM.clusters){
+    const a = Math.max(0, monthIdx(c.t_start)), b = Math.min(N - 1, monthIdx(c.t_end));
+    const level = c.mean_anomaly_score / maxScore;
+    for (let i = a; i <= b; i++) out[i] = Math.max(out[i], level);
+  }
+  return out;
+}
+function anomAt(t){
+  if (!anomIntensity) return 0;
+  const i0 = Math.floor(t), i1 = Math.min(i0 + 1, anomIntensity.length - 1), f = t - i0;
+  return anomIntensity[i0] * (1 - f) + anomIntensity[i1] * f;
+}
+
+/* ---------------- C1 furniture drawn on canvas (paper idiom) ------------- */
+function drawStaticFurniture(){
+  const grid = 'rgba(231,240,247,0.10)';
+  const axis = 'rgba(231,240,247,0.35)';
+  const px0 = fit.ox, py0 = fit.oy;                // panel corner in screen space
+  const pw = (fit.x1 - fit.x0) * fit.s, ph = (fit.y1 - fit.y0) * fit.s;
+
+  g.fillStyle = 'rgba(127,180,217,0.05)';
+  g.fillRect(px0, py0, pw, ph);
+  g.font = '10px ui-monospace,monospace';
+
+  // grid + ticks
+  for (let v = Math.ceil(fit.y0 / 20) * 20; v <= fit.y1; v += 20){
+    const y = SY(v);
+    g.strokeStyle = grid; g.beginPath(); g.moveTo(px0, y); g.lineTo(px0 + pw, y); g.stroke();
+    g.fillStyle = INK.inkSoft; g.textAlign = 'right';
+    g.fillText((v > 0 ? '+' + v : String(v)), px0 - 12, y + 3.5);
+  }
+  for (let v = Math.ceil(fit.x0 / 50) * 50; v <= fit.x1; v += 50){
+    const x = SX(v);
+    g.strokeStyle = grid; g.beginPath(); g.moveTo(x, py0); g.lineTo(x, py0 + ph); g.stroke();
+    g.fillStyle = INK.inkSoft; g.textAlign = 'center';
+    g.fillText((v > 0 ? '+' + v : String(v)), x, py0 + ph + 22);
+  }
+  // latent axes THROUGH THE CENTROID (item 3) — thin, ~25% opacity,
+  // identical position in every condition
+  g.strokeStyle = 'rgba(231,240,247,0.25)';
+  g.beginPath(); g.moveTo(SX(ctr1), py0); g.lineTo(SX(ctr1), py0 + ph); g.stroke();
+  g.beginPath(); g.moveTo(px0, SY(ctr2)); g.lineTo(px0 + pw, SY(ctr2)); g.stroke();
+  // frame
+  g.strokeStyle = axis; g.strokeRect(px0, py0, pw, ph);
+
+  // axis titles (variance shares from pca.var_explained — never typed)
+  const clean = (s) => s.replace(/&middot;/g, '·');
+  g.fillStyle = INK.inkSoft; g.textAlign = 'center';
+  g.fillText(clean(T('axis_pc1', { v1: V1PCT })), px0 + pw / 2, py0 + ph + 48);
+  g.save();
+  g.translate(px0 - 64, py0 + ph / 2); g.rotate(-Math.PI / 2);
+  g.fillText(clean(T('axis_pc2', { v2: V2PCT })), 0, 0);
+  g.restore();
+
+  // title line
+  g.textAlign = 'left';
+  g.fillText(clean(T('header_line', {
+    n: N, t0: fmtMonth(TRAJ.time[0]), t1: fmtMonth(TRAJ.time[N - 1]),
+  })).replace(/&ndash;/g, '–').replace(/&rsquo;/g, '’'), px0, py0 - 22);
+
+  // reading floor captions (shared/context-engine.js), Scene I caption style
+  g.font = '8.5px ui-monospace,monospace';
+  g.textAlign = 'center';
+  readingLines(lang, { v1: V1PCT, v2: V2PCT }).forEach((line, li) => {
+    const txt = line.replace(/&middot;/g, '·').replace(/&ndash;/g, '–')
+                    .replace(/&rsquo;/g, '’').replace(/&Egrave;/g, 'È')
+                    .replace(/&Agrave;/g, 'À').replace(/&Ugrave;/g, 'Ù');
+    g.fillText(txt, px0 + pw / 2, py0 + ph + 70 + li * 15);
+  });
+  g.font = '10px ui-monospace,monospace';
+
+  // colour bar (vertical, right of the panel) — year ticks from the record
+  const barX = px0 + pw + 30, barW = 12;
+  const grad = g.createLinearGradient(0, py0 + ph, 0, py0);
+  grad.addColorStop(0, COL.deep); grad.addColorStop(0.5, COL.north); grad.addColorStop(1, COL.northHi);
+  g.fillStyle = grad; g.fillRect(barX, py0, barW, ph);
+  g.strokeStyle = axis; g.strokeRect(barX, py0, barW, ph);
+  g.fillStyle = INK.inkSoft; g.textAlign = 'center'; g.font = '9px ui-monospace,monospace';
+  g.fillText(T('bar_label'), barX + barW / 2, py0 - 12);
+  g.textAlign = 'left';
+  const yFirst = +TRAJ.time[0].slice(0, 4), yLast = +TRAJ.time[N - 1].slice(0, 4);
+  const tickYears = [];
+  for (let yr = yFirst; yr <= yLast; yr += 5) tickYears.push(yr);
+  if (tickYears[tickYears.length - 1] !== yLast) tickYears.push(yLast);
+  for (const yr of tickYears){
+    const idx = yr === yLast ? N - 1 : TRAJ.time.findIndex(tm => +tm.slice(0, 4) === yr);
+    if (idx < 0) continue;
+    const f = idx / (N - 1);
+    const ty = py0 + (1 - f) * ph;
+    g.strokeStyle = axis; g.beginPath(); g.moveTo(barX + barW, ty); g.lineTo(barX + barW + 5, ty); g.stroke();
+    g.fillText(String(yr), barX + barW + 10, ty + 3.5);
+  }
+  g.font = '10px ui-monospace,monospace';
+}
+
+/* ------------------------------------------------------------ rendering --- */
+function draw(){
+  if (!dataLoaded) return;
+  frame++;
+  g.clearRect(0, 0, W, H);
+  const bgr = g.createRadialGradient(W/2, H*0.42, 0, W/2, H*0.42, Math.max(W, H)*0.75);
+  bgr.addColorStop(0, '#0a2136'); bgr.addColorStop(0.45, '#061524'); bgr.addColorStop(1, '#010811');
+  g.fillStyle = bgr; g.fillRect(0, 0, W, H);
+
+  if (cond === 'C1'){
+    // ---- the paper idiom: all points + finer cloud + centroid; nothing
+    //      moves except the optional emphasis pulse (item 10) -------------
+    drawStaticFurniture();
+    if (cloudLayer) g.drawImage(cloudLayer, 0, 0, W, H);   // item 1 (faint, secondary)
+    drawCentroid();                                        // item 2
+    for (let i = 0; i < N; i++){
+      g.fillStyle = rampColor(i / (N - 1));
+      g.globalAlpha = 0.85;
+      g.beginPath(); g.arc(SX(TRAJ.pc1[i]), SY(TRAJ.pc2[i]), 3, 0, Math.PI * 2); g.fill();
+    }
+    g.globalAlpha = 1;
+    drawEmphasis(N - 1);                                   // item 10 (all months shown)
+    requestAnimationFrame(draw);
+    return;
+  }
+
+  // ---- C2/C3: the plane travelled --------------------------------------
+  if (playing){
+    tFloat += 0.05 * speedMul;
+    if (tFloat > N - 1) tFloat = 0;
+    timeEl.value = Math.round(tFloat);
+  }
+  document.getElementById('month-big').textContent = fmtMonth(TRAJ.time[Math.round(tFloat)]);
+
+  const turb = cond === 'C3' ? anomAt(tFloat) : 0; // agitation is the C3 layer
+  const visited = Math.floor(tFloat);
+
+  // finer cloud (item 1) — always present, perceptually secondary
+  if (cloudLayer) g.drawImage(cloudLayer, 0, 0, W, H);
+
+  // latent axes through the centroid (item 3) + labels — identical to C1
+  g.strokeStyle = 'rgba(231,240,247,0.25)';
+  g.lineWidth = 1;
+  g.beginPath(); g.moveTo(SX(fit.x0), SY(ctr2)); g.lineTo(SX(fit.x1), SY(ctr2)); g.stroke();
+  g.beginPath(); g.moveTo(SX(ctr1), SY(fit.y1)); g.lineTo(SX(ctr1), SY(fit.y0)); g.stroke();
+  g.font = '9px ui-monospace,monospace';
+  g.fillStyle = 'rgba(231,240,247,0.35)';
+  g.textAlign = 'right';
+  g.fillText(T('axis_pc1', { v1: V1PCT }).replace(/&middot;/g, '·'), SX(fit.x1) - 4, SY(ctr2) - 6);
+  g.save();
+  g.translate(SX(ctr1) + 12, SY(fit.y1) + 8);
+  g.rotate(-Math.PI / 2); g.textAlign = 'right';
+  g.fillText(T('axis_pc2', { v2: V2PCT }).replace(/&middot;/g, '·'), 0, 0);
+  g.restore();
+  g.textAlign = 'left';
+
+  // current month's finer samples illuminate, then dissolve back (item 1)
+  if (cloudEnergy){
+    for (let i = 0; i < N5; i++) cloudEnergy[i] *= 0.95;
+    const [ca, cb] = cloudRangeOf(Math.min(visited, N - 1));
+    for (let i = ca; i < cb; i++) cloudEnergy[i] += (1 - cloudEnergy[i]) * 0.10;
+    for (let i = 0; i < N5; i++){
+      const e = cloudEnergy[i];
+      if (e < 0.02) continue;
+      g.fillStyle = rampColor(i / (N5 - 1));
+      g.globalAlpha = Math.min(0.75, 0.15 + e * 0.55);
+      g.beginPath();
+      g.arc(SX(CLOUD.pc1[i]), SY(CLOUD.pc2[i]), 1.6 + e * 1.4, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  drawCentroid();                                  // item 2 — identical to C1
+
+  // accumulating cloud — never faded, capped or thinned
+  for (let i = 0; i <= visited; i++){
+    g.fillStyle = rampColor(i / (N - 1));
+    g.globalAlpha = 0.85;
+    g.beginPath(); g.arc(SX(TRAJ.pc1[i]), SY(TRAJ.pc2[i]), 3, 0, Math.PI * 2); g.fill();
+  }
+  g.globalAlpha = 1;
+
+  drawEmphasis(visited);                           // item 10 (visited months)
+
+  // trailing line (item 4): the REAL chronological path over ~18 months,
+  // smooth decay, brighter head so direction reads at a glance
+  const tTail = Math.max(0, tFloat - TRAIL_MONTHS);
+  const STEPS = 160;
+  let prev = null;
+  for (let k = 0; k <= STEPS; k++){
+    const tk = tTail + (tFloat - tTail) * (k / STEPS);
+    const [a, b] = posAt(tk);
+    let x = SX(a), y = SY(b);
+    const tb = cond === 'C3' ? anomAt(tk) : 0;
+    if (tb > 0){
+      x += Math.sin(tk * 47.13 + frame * 0.11) * tb * 6;
+      y += Math.cos(tk * 61.71 + frame * 0.13) * tb * 6;
+    }
+    if (prev){
+      const f = k / STEPS;
+      g.strokeStyle = COL.beacon;
+      g.globalAlpha = Math.pow(f, 1.4) * 0.7;
+      g.lineWidth = 0.8 + 2.2 * f;
+      g.beginPath(); g.moveTo(prev[0], prev[1]); g.lineTo(x, y); g.stroke();
+    }
+    prev = [x, y];
+  }
+  g.globalAlpha = 1;
+
+  // the current month — filled amber marker; item 5: the halo breathes with
+  // pc1(t) (min–max normalised) and beats with the shared audio clock
+  const normP = (TRAJ.pc1[Math.round(tFloat)] - pc1min) / (pc1max - pc1min);
+  const breathe = 0.5 + 0.5 * Math.sin(performance.now() * 0.001 * (0.18 + 0.22 * normP) * Math.PI * 2);
+  const [pa, pb] = posAt(tFloat);
+  let mx = SX(pa), my = SY(pb);
+  if (turb > 0){
+    mx += (Math.random() - 0.5) * turb * 16;
+    my += (Math.random() - 0.5) * turb * 16;
+  }
+  g.fillStyle = COL.beacon;
+  g.globalAlpha = 0.13 + 0.05 * normP + breathe * 0.07 + beatEnv * 0.22 + turb * 0.10;
+  g.beginPath(); g.arc(mx, my, 16 + breathe * 3 + beatEnv * 8 + turb * 6, 0, Math.PI * 2); g.fill();
+  g.globalAlpha = 1;
+  g.beginPath(); g.arc(mx, my, 7 + beatEnv * 2, 0, Math.PI * 2); g.fill();
+  // item 6: the audio beat spikes the indicator dot's scale (breathing is CSS)
+  document.getElementById('beat-dot').style.transform = 'scale(' + (1 + beatEnv * 0.6).toFixed(2) + ')';
+
+  if (turb > 0.3){
+    g.fillStyle = COL.beacon;
+    const nS = Math.round(3 + turb * 6);
+    for (let k = 0; k < nS; k++){
+      const ang = Math.random() * Math.PI * 2;
+      const rad = 9 + Math.random() * 22 * turb;
+      g.globalAlpha = 0.14 + Math.random() * 0.3 * turb;
+      g.beginPath();
+      g.arc(mx + Math.cos(ang) * rad, my + Math.sin(ang) * rad, 0.8 + Math.random() * 1.4, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  if (cond === 'C3') updateHeartbeat(); else beatEnv = 0;
+  updateHover();
+  requestAnimationFrame(draw);
+}
+
+/* Hover (C3 only): the nearest visited point's month — nothing else. */
+function updateHover(){
+  if (!dataLoaded || cond !== 'C3' || document.body.classList.contains('pre-start')){
+    hoverEl.style.display = 'none'; return;
+  }
+  const visited = Math.floor(tFloat);
+  let best = -1, bestD = 12 * 12;
+  for (let i = 0; i <= visited; i++){
+    const dx = SX(TRAJ.pc1[i]) - mouse.x, dy = SY(TRAJ.pc2[i]) - mouse.y;
+    const d = dx * dx + dy * dy;
+    if (d < bestD){ bestD = d; best = i; }
+  }
+  if (best < 0){ hoverEl.style.display = 'none'; return; }
+  hoverEl.textContent = TRAJ.time[best];
+  hoverEl.style.display = 'block';
+  hoverEl.style.left = Math.min(W - 110, mouse.x + 18) + 'px';
+  hoverEl.style.top  = Math.max(12, mouse.y - 34) + 'px';
+}
+
+/* ------------------------------------------------------------- audio ------
+   Same synthesis approach as Scene I (heartbeat + marine bed); C3 only,
+   OFF BY DEFAULT. pc1(t) → rate & fullness, min–max normalised. */
+let AC = null, osc = null, pulse = null, master = null, oceanGain = null;
+let audioOn = false;
+function initAudio(){
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain(); master.gain.value = 0.62;
+  master.connect(AC.destination);
+  osc = AC.createOscillator(); osc.type = 'sine'; osc.frequency.value = 60;
+  const osc2 = AC.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 120;
+  const partial = AC.createGain(); partial.gain.value = 0.35;
+  pulse = AC.createGain(); pulse.gain.value = 0;
+  osc.connect(pulse); osc2.connect(partial); partial.connect(pulse); pulse.connect(master);
+  osc.start(); osc2.start();
+  startOcean();
+}
+function startOcean(){
+  const len = AC.sampleRate * 4;
+  const buf = AC.createBuffer(1, len, AC.sampleRate);
+  const d = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < len; i++){
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.02 * w) / 1.02;
+    d[i] = last * 3.5;
+  }
+  const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380; lp.Q.value = 0.7;
+  oceanGain = AC.createGain(); oceanGain.gain.value = 0.06;
+  src.connect(lp); lp.connect(oceanGain); oceanGain.connect(master);
+  const swell = AC.createOscillator(); swell.frequency.value = 0.06;
+  const swellAmt = AC.createGain(); swellAmt.gain.value = 0.035;
+  swell.connect(swellAmt); swellAmt.connect(oceanGain.gain);
+  const breathe = AC.createOscillator(); breathe.frequency.value = 0.045;
+  const breatheAmt = AC.createGain(); breatheAmt.gain.value = 160;
+  breathe.connect(breatheAmt); breatheAmt.connect(lp.frequency);
+  const drone1 = AC.createOscillator(); drone1.type = 'sine';     drone1.frequency.value = 82;
+  const drone2 = AC.createOscillator(); drone2.type = 'triangle'; drone2.frequency.value = 82.4;
+  const droneGain = AC.createGain(); droneGain.gain.value = 0.012;
+  drone1.connect(droneGain); drone2.connect(droneGain); droneGain.connect(master);
+  src.start(); swell.start(); breathe.start(); drone1.start(); drone2.start();
+}
+function updateHeartbeat(){
+  beatEnv *= 0.93;
+  const i = Math.round(tFloat);
+  const norm = (TRAJ.pc1[i] - pc1min) / (pc1max - pc1min);
+  const bpm = 40 + norm * 40;
+  const nowS = performance.now() / 1000;
+  if (nowS < nextBeatT) return;
+  nextBeatT = nowS + 60 / bpm;
+  beatEnv = 1;
+  if (audioOn && AC && AC.state === 'running'){
+    const now = AC.currentTime;
+    const fullness = 0.5 + norm * 0.8;
+    pulse.gain.cancelScheduledValues(now);
+    pulse.gain.setTargetAtTime(fullness, now, 0.015);
+    pulse.gain.setTargetAtTime(0, now + 0.09, 0.12);
+    osc.frequency.setTargetAtTime(55 + norm * 20, now, 0.05);
+    if (oceanGain){
+      oceanGain.gain.setTargetAtTime(0.06 + 0.05 * norm, now, 0.04);
+      oceanGain.gain.setTargetAtTime(0.06, now + 0.15, 0.35);
+    }
+  }
+}
+function stopAudio(){
+  if (AC){ AC.close(); AC = null; osc = pulse = master = oceanGain = null; }
+}
+function refreshSoundBtn(){
+  const b = document.getElementById('sound-toggle');
+  b.innerHTML = audioOn ? T('sound_on') : T('sound_off');
+  b.classList.toggle('on', audioOn);
+}
+function setSound(on){
+  audioOn = on;
+  refreshSoundBtn();
+  if (on){ initAudio(); if (AC.state === 'suspended') AC.resume(); }
+  else if (AC && AC.state === 'running') AC.suspend();
+}
+document.getElementById('sound-toggle').onclick = () => setSound(!audioOn);
+
+/* ------------------------------------------------------------- wiring ----- */
+function setPlaying(p){
+  playing = p;
+  document.getElementById('play-toggle').innerHTML = p ? T('pause') : T('resume');
+}
+document.getElementById('play-toggle').onclick = () => setPlaying(!playing);
+timeEl.addEventListener('input', () => {
+  setPlaying(false);
+  tFloat = +timeEl.value;
+});
+document.getElementById('speed-seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  speedMul = +b.dataset.speed;
+  document.querySelectorAll('#speed-seg button').forEach(x => x.classList.toggle('active', x === b));
+});
+
+/* Condition switch — same wiring pattern as column_tot.html. */
+function setCond(c){
+  cond = c;
+  document.querySelectorAll('#conditions button').forEach(b => b.classList.remove('active'));
+  document.getElementById(c === 'C1' ? 'b-c1' : c === 'C2' ? 'b-c2' : 'b-c3').classList.add('active');
+  const dyn = c !== 'C1';
+  document.getElementById('controls').style.display      = dyn ? 'flex' : 'none';
+  document.getElementById('readouts').style.display      = dyn ? 'block' : 'none';
+  document.getElementById('time-wrap').style.visibility  = dyn ? 'visible' : 'hidden';
+  document.getElementById('sound-toggle').style.display  = c === 'C3' ? '' : 'none';
+  document.getElementById('hover-hint').style.display    = c === 'C3' ? 'block' : 'none';
+  if (dyn) setPlaying(true);
+  if (c !== 'C3'){
+    audioOn = false; refreshSoundBtn();
+    stopAudio();
+    beatEnv = 0;
+    document.getElementById('beat-dot').style.transform = '';
+    hoverEl.style.display = 'none';
+  }
+}
+document.getElementById('b-c1').onclick = () => setCond('C1');
+document.getElementById('b-c2').onclick = () => setCond('C2');
+document.getElementById('b-c3').onclick = () => setCond('C3');
+
+// Item 10 — the emphasis switch changes visual emphasis of existing points
+// only (a display state); every underlying number is untouched.
+document.getElementById('anom-toggle').addEventListener('click', () => {
+  emphOn = !emphOn;
+  document.getElementById('anom-toggle').classList.toggle('on', emphOn);
+  document.getElementById('anom-toggle').innerHTML = T(emphOn ? 'emph_on' : 'emph_off');
+});
+
+/* Cursor + bokeh (Scene I identity). */
+const curDot = document.getElementById('cursor-dot');
+const curRing = document.getElementById('cursor-ring');
+function moveCursor(x, y){
+  curDot.style.transform  = `translate(${x - 2.5}px,${y - 2.5}px)`;
+  curRing.style.transform = `translate(${x - 15}px,${y - 15}px)`;
+}
+moveCursor(innerWidth / 2, innerHeight / 2);
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  moveCursor(e.clientX, e.clientY);
+});
+
+const bokehCv = document.getElementById('bokeh');
+const bg = bokehCv.getContext('2d');
+let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
+function resizeBokeh(){
+  const dpr = window.devicePixelRatio || 1;
+  bokehW = innerWidth; bokehH = innerHeight;
+  bokehCv.width = Math.round(bokehW * dpr); bokehCv.height = Math.round(bokehH * dpr);
+  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
+  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (!bokehSpots.length) seedBokeh();
+}
+function seedBokeh(){
+  bokehSpots = [];
+  for (let i = 0; i < 26; i++) bokehSpots.push({
+    x: Math.random() * bokehW, y: Math.random() * bokehH,
+    r: 24 + Math.random() * 100,
+    vx: (Math.random() - 0.5) * 0.25, vy: -0.05 - Math.random() * 0.22,
+    a: 0.05 + Math.random() * 0.13,
+    hue: Math.random() < 0.55 ? '127,180,217' : '255,179,92'
+  });
+}
+function drawBokeh(){
+  if (!bokehOn) return;
+  bg.clearRect(0, 0, bokehW, bokehH);
+  bg.globalCompositeOperation = 'lighter';
+  for (const sp of bokehSpots){
+    sp.x += sp.vx; sp.y += sp.vy;
+    if (sp.y + sp.r < 0)       sp.y = bokehH + sp.r;
+    if (sp.x < -sp.r)          sp.x = bokehW + sp.r;
+    if (sp.x > bokehW + sp.r)  sp.x = -sp.r;
+    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+    bg.fillStyle = grd;
+    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); bg.fill();
+  }
+  bg.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(drawBokeh);
+}
+
+/* Screen sequence: landing splash → shared intro → the demo (lands on C1). */
+document.getElementById('splash').addEventListener('click', () => {
+  const s = document.getElementById('splash');
+  s.style.opacity = '0';
+  s.style.pointerEvents = 'none';
+  setTimeout(() => { s.style.display = 'none'; bokehOn = false; }, 1300);
+  const scr = document.getElementById('intro-screen');
+  scr.querySelector('.panel').innerHTML = introHTML(lang);
+  scr.style.display = 'flex';
+}, { once: true });
+document.getElementById('intro-screen').addEventListener('click', e => {
+  if (e.target.id !== 'intro-continue') return;
+  document.getElementById('intro-screen').style.display = 'none';
+  document.body.classList.remove('pre-start');
+  setCond('C1');
+});
+
+/* Language toggle: labels only — never a number. */
+function applyLang(l){
+  lang = l;
+  localStorage.setItem('la-lang', l);
+  document.documentElement.lang = l;
+  document.title = T('doc_title');
+  document.getElementById('lang-en').classList.toggle('active', l === 'en');
+  document.getElementById('lang-it').classList.toggle('active', l === 'it');
+  document.getElementById('splash-scene').innerHTML = T('splash_scene');
+  document.getElementById('splash-click').innerHTML = T('splash_click');
+  document.getElementById('scene-label').innerHTML  = T('scene_label');
+  document.getElementById('howto').innerHTML        = T('howto');
+  document.getElementById('b-c1').innerHTML         = T('b_c1');
+  document.getElementById('b-c2').innerHTML         = T('b_c2');
+  document.getElementById('b-c3').innerHTML         = T('b_c3');
+  document.getElementById('hover-hint').innerHTML   = T('hover_hint');
+  document.getElementById('lbl-month').innerHTML    = T('month_label');
+  document.getElementById('lbl-speed').innerHTML    = T('speed');
+  document.getElementById('load-error').innerHTML   = T('load_error');
+  document.getElementById('anom-toggle').innerHTML  = T(emphOn ? 'emph_on' : 'emph_off');
+  document.getElementById('source').innerHTML = sourceHTML(l);
+  if (dataLoaded){
+    document.getElementById('describes').innerHTML = describesHTML(l, {
+      n: N, y0: TRAJ.time[0].slice(0, 4), y1: TRAJ.time[N - 1].slice(0, 4),
+    });
+    document.getElementById('reading-box').innerHTML =
+      readingLines(l, { v1: V1PCT, v2: V2PCT })
+        .map(line => '<div class="read-line">' + line + '</div>').join('');
+    document.getElementById('time-start').textContent = fmtMonth(TRAJ.time[0]);
+    document.getElementById('time-end').textContent   = fmtMonth(TRAJ.time[N - 1]);
+  }
+  const introScr = document.getElementById('intro-screen');
+  if (introScr.style.display === 'flex')
+    introScr.querySelector('.panel').innerHTML = introHTML(l);
+  setPlaying(playing);
+  refreshSoundBtn();
+}
+document.getElementById('lang-en').onclick = () => applyLang('en');
+document.getElementById('lang-it').onclick = () => applyLang('it');
+
+window.addEventListener('resize', () => {
+  const dpr = window.devicePixelRatio || 1;
+  W = innerWidth; H = innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  computeFit();
+  resizeBokeh();
+});
+
+/* ---------------------------------------------------------------- boot ---- */
+async function boot(){
+  applyLang(lang);
+  window.dispatchEvent(new Event('resize'));
+  seedBokeh(); drawBokeh();
+  let B = null;
+  try { B = await loadBundle('/data/amoc_translate_bundle.json'); }
+  catch (e){
+    document.getElementById('load-error').style.display = 'block';
+    console.error(e);
+    return;
+  }
+  TRAJ = B.trajectory_monthly;
+  N = TRAJ.time.length;
+  CLOUD = B.manifold_cloud.pc;                          // the same space, finer stride
+  N5 = CLOUD.pc1.length;
+  cloudEnergy = new Float32Array(N5);
+  // centroid of the finer cloud — computed here, never typed (item 2)
+  ctr1 = 0; ctr2 = 0;
+  for (let i = 0; i < N5; i++){ ctr1 += CLOUD.pc1[i]; ctr2 += CLOUD.pc2[i]; }
+  ctr1 /= N5; ctr2 /= N5;
+  pc1min = Math.min(...TRAJ.pc1); pc1max = Math.max(...TRAJ.pc1);
+  anomIntensity = buildAnomalyIntensity(B.anomalies);
+  V1PCT = (B.pca.var_explained[0] * 100).toFixed(1);
+  V2PCT = (B.pca.var_explained[1] * 100).toFixed(1);
+  timeEl.max = N - 1;
+  computeFit();
+  dataLoaded = true;
+  applyLang(lang);
+  requestAnimationFrame(draw);
+}
+boot();
+</script>
+</body>
+</html>

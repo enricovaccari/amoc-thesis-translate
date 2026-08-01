@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Atlantic — About this visualization</title>
+<style>
+:root{
+  --abyss:#010811; --panel:#081420; --flow-north:#7fb4d9; --flow-north-hi:#cfe8ff;
+  --return-deep:#24507a; --excursion:#49b8a5; --beacon:#ffb35c; --ink:#e7f0f7;
+  --ink-soft:rgba(231,240,247,.62); --line:rgba(255,255,255,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:linear-gradient(180deg,#241d24 0%,#0e1420 8%,#04070d 40%,#010306 72%,#000 100%) no-repeat;
+  background-attachment:fixed;color:var(--ink);
+  font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;
+  line-height:1.7;font-size:14px;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:820px;margin:0 auto;padding:70px 28px 120px}
+header.top{margin-bottom:54px;border-bottom:1px solid var(--line);padding-bottom:30px}
+h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:34px;letter-spacing:10px;
+  text-transform:uppercase;margin:0}
+.subtitle{margin-top:14px;font-size:11px;letter-spacing:4px;text-transform:uppercase;opacity:.55}
+.lede{margin-top:26px;font-size:15px;line-height:1.75;color:var(--ink-soft);max-width:680px}
+.back{display:inline-block;margin-top:22px;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--beacon);text-decoration:none;border:1px solid rgba(255,179,92,.4);padding:8px 16px;transition:.2s}
+.back:hover{background:rgba(255,179,92,.12)}
+
+section{margin-top:56px}
+h2{font-family:Georgia,serif;font-weight:400;font-size:23px;letter-spacing:1px;margin:0 0 6px;
+  color:var(--flow-north-hi)}
+.eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--beacon);opacity:.8;margin-bottom:12px}
+h3{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--flow-north);margin:26px 0 8px}
+p{margin:0 0 14px;color:var(--ink-soft)}
+strong{color:var(--ink);font-weight:400}
+ul{margin:0 0 14px;padding-left:20px;color:var(--ink-soft)}
+li{margin-bottom:6px}
+.callout{border-left:2px solid var(--beacon);background:rgba(255,179,92,.05);padding:16px 20px;margin:20px 0;
+  font-size:13.5px;color:var(--ink)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--line);padding:16px 18px}
+.card .t{font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.card.observed .t{color:var(--flow-north-hi)}
+.card.computed .t{color:var(--beacon)}
+.card ul{margin:0;font-size:12.5px}
+
+table{width:100%;border-collapse:collapse;margin:22px 0;font-size:12.5px}
+th,td{text-align:left;vertical-align:top;padding:12px 12px;border-bottom:1px solid var(--line)}
+thead th{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--beacon);opacity:.85;border-bottom:1px solid rgba(255,179,92,.3)}
+td.p{color:var(--flow-north-hi);white-space:nowrap;font-weight:400}
+td .ch{color:var(--ink)}
+td .cog{display:block;margin-top:6px;font-size:11.5px;color:var(--ink-soft)}
+.refs{font-size:12px;color:var(--ink-soft)}
+.refs li{margin-bottom:8px}
+footer{margin-top:64px;padding-top:26px;border-top:1px solid var(--line);font-size:11px;letter-spacing:1px;
+  color:rgba(231,240,247,.4)}
+.tag{display:inline-block;font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin:0 6px 6px 0;color:var(--ink-soft)}
+@media (max-width:640px){ .split{grid-template-columns:1fr} h1{font-size:26px;letter-spacing:6px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Living Atlantic</h1>
+    <div class="subtitle">Scene I — The Column · About this visualization</div>
+    <p class="lede">An experiential, data-driven representation of the Atlantic Meridional Overturning
+      Circulation (AMOC) at 26.5&deg;N. This page explains — transparently — what the visualization is,
+      which data it rests on, and how machine learning is used to make an invisible ocean system
+      perceptually explorable.</p>
+    <a class="back" href="viz1.html">&larr; Back to the visualization</a>
+  </header>
+
+  <!-- ===================== A. ETHICS & PHILOSOPHY ===================== -->
+  <section>
+    <div class="eyebrow">A · Ethics &amp; philosophy</div>
+    <h2>Why this visualization exists</h2>
+    <p>The AMOC is a planetary-scale circulation that redistributes heat across the Atlantic. It is
+      largely <strong>invisible and abstract</strong>: normally reduced to a single number of Sverdrups
+      on a line chart. Such conventional formats treat the system as an <em>object to read</em> rather than
+      a <em>dynamic to inhabit</em>. This visualization asks whether making the structure
+      <strong>perceivable</strong> — as a living vertical column with direction, depth and rhythm — can
+      support a more grounded, embodied understanding of a complex, slow, high-stakes climate system.</p>
+
+    <h3>Making the invisible intelligible</h3>
+    <p>By mapping transport, its vertical structure and its temporal variability onto motion, position,
+      colour and sound, the scene exploits pre-conceptual grounding (the up/down, near/far, strong/weak
+      image schemas) so that a viewer can <em>feel</em> where the current is strong and northward and
+      where it is weak and returning — before any conscious reading of the axes.</p>
+
+    <h3>The role of experiential scientific communication</h3>
+    <p>Experiential visualization is not a replacement for charts; it is a complementary layer. It aims to
+      build intuition, curiosity and a sense of scale, and to invite exploration — turning a static readout
+      into something a non-specialist can interrogate.</p>
+
+    <h3>Interpretive limits</h3>
+    <div class="callout">
+      This visualization <strong>does not predict the future</strong>. It <strong>does not replace physical
+      climate models</strong>. It transforms observed structures and dynamics of the system into a form that
+      can be <strong>perceptually explored</strong>. Every on-screen quantity is traceable to a dataset value
+      or an explicitly declared computational transformation — nothing is invented for effect.
+    </div>
+  </section>
+
+  <!-- ===================== B. DATASETS ===================== -->
+  <section>
+    <div class="eyebrow">B · Datasets</div>
+    <h2>Where the data comes from</h2>
+
+    <h3>Primary observations — RAPID array (26.5&deg;N)</h3>
+    <p>The vertical AMOC structure is built from the <strong>RAPID–MOCHA–WBTS</strong> continuous
+      monitoring array at 26.5&deg;N — the reference observational record of Atlantic overturning transport.
+      It provides the depth-resolved overturning streamfunction &Psi;(z) that the on-screen column represents,
+      spanning the observational period <strong>2004–2024</strong>.</p>
+
+    <h3>Supporting data — Copernicus reanalysis ensemble</h3>
+    <p>A reanalysis <strong>ensemble</strong> (Copernicus / GREP-style, C-GLORS · GLORYS · ORAS5) is used as
+      a supporting source for the <strong>ensemble spread</strong> — the disagreement between members — which
+      provides an empirical, data-grounded measure of uncertainty rather than an invented one.</p>
+
+    <h3>Variables represented</h3>
+    <ul>
+      <li><strong>&Psi;(z)</strong> — overturning streamfunction vs depth (Sverdrups), 307 levels, 0–~6000 m.</li>
+      <li><strong>Local velocity</strong> — derived as d&Psi;/dz, giving the true northward/southward flow direction at each depth.</li>
+      <li><strong>Temporal variability</strong> — monthly evolution across 2004–2024.</li>
+      <li><strong>Uncertainty</strong> — ensemble spread from the reanalysis members.</li>
+    </ul>
+
+    <h3>Observed vs computed — a clear separation</h3>
+    <div class="split">
+      <div class="card observed">
+        <div class="t">Directly observed</div>
+        <ul>
+          <li>RAPID overturning transport at 26.5&deg;N</li>
+          <li>Depth grid of the section</li>
+          <li>Reanalysis ensemble members (support)</li>
+        </ul>
+      </div>
+      <div class="card computed">
+        <div class="t">Computational transformation</div>
+        <ul>
+          <li>PCA decomposition &amp; two-mode reconstruction</li>
+          <li>Local velocity as the derivative d&Psi;/dz</li>
+          <li>Anomaly scoring (Isolation Forest)</li>
+          <li>Interpolation &amp; visual/sonic encoding</li>
+        </ul>
+      </div>
+    </div>
+    <p>The moving column is a <strong>two-mode reconstruction</strong>, not a replay of raw sensor traces:
+      it is what remains when only the dominant learned modes are kept. This is stated openly so the viewer
+      never mistakes a computed representation for a direct measurement.</p>
+  </section>
+
+  <!-- ===================== C. MACHINE LEARNING ===================== -->
+  <section>
+    <div class="eyebrow">C · Machine learning</div>
+    <h2>How ML is used</h2>
+    <p>Machine learning here is a layer of <strong>extraction, organization and perceptual translation</strong>
+      — not a physical model of the ocean and not a forecaster.</p>
+    <ul>
+      <li><strong>Latent structure extraction.</strong> PCA compresses hundreds of correlated depth levels
+        into a low-dimensional latent space, exposing the hidden coordinates that organize the system.</li>
+      <li><strong>Dominant modes.</strong> The first two empirical orthogonal functions (EOF1, EOF2) capture
+        the principal ways the column varies: EOF1 ≈ whole-column overturning intensity; EOF2 ≈ vertical
+        redistribution. Two modes reconstruct the large majority of all variability.</li>
+      <li><strong>Dimensionality reduction.</strong> The full profile at any month is rebuilt as
+        <em>mean + PC1(t)·EOF1 + PC2(t)·EOF2</em>. The animation is a trajectory <em>through this learned
+        latent space</em>, not a re-play of observations.</li>
+      <li><strong>Anomaly detection.</strong> An Isolation Forest flags states that depart from the learned
+        regime — candidate anomalies in the system's behaviour.</li>
+      <li><strong>Latent-space transitions.</strong> Movement between states is expressed as motion in the
+        reduced representation, making regime shifts legible.</li>
+      <li><strong>Uncertainty.</strong> The reanalysis ensemble spread is used as a data-derived structure of
+        confidence rather than a decorative flourish.</li>
+    </ul>
+    <div class="callout">
+      Machine learning does <strong>not replace physical knowledge</strong> of the system. It is used as a
+      layer that <strong>extracts, organizes and perceptually translates</strong> the data — surfacing hidden
+      structure so that it can be seen, heard and explored.
+    </div>
+  </section>
+
+  <!-- ===================== DESIGN GRAMMAR ===================== -->
+  <section>
+    <div class="eyebrow">D · Design grammar</div>
+    <h2>From system property to percept</h2>
+    <p>Each scientific property is mapped to the perceptual channel best suited to carry it, following the
+      graphical-perception and uncertainty-cognition literature. The ordering of channels by effectiveness
+      (position &gt; length &gt; motion &gt; colour &gt; texture) drives which property gets which channel.</p>
+
+    <table>
+      <thead>
+        <tr><th>Principle</th><th>System property</th><th>Perceptual implementation &amp; cognitive rationale</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="p">P0</td>
+          <td>Relative importance of variables</td>
+          <td><span class="ch">The most important variables are assigned the most effective perceptual channels.</span>
+            <span class="cog">Channel-effectiveness ranking (Bertin 1967; Cleveland &amp; McGill 1984; Munzner 2014): expressiveness/effectiveness — encode what matters most with position and motion, not colour hue.</span></td>
+        </tr>
+        <tr>
+          <td class="p">P1</td>
+          <td>Magnitude / intensity</td>
+          <td><span class="ch">AMOC intensity (max &Psi;) encoded through position and scale on the column.</span>
+            <span class="cog">Position and length are the most accurately decoded channels for quantitative magnitude (Cleveland &amp; McGill 1984; Munzner 2014).</span></td>
+        </tr>
+        <tr>
+          <td class="p">P2</td>
+          <td>Dynamics / change over time</td>
+          <td><span class="ch">Particle motion represents temporal dynamics and flow direction.</span>
+            <span class="cog">Motion is a powerful pre-attentive channel; velocity reads as magnitude without a legend, and animation aids understanding of change (Ware 2021; Sterman 2008 on inhabiting vs reading a dynamic system).</span></td>
+        </tr>
+        <tr>
+          <td class="p">P3</td>
+          <td>Anomaly / departure from regime</td>
+          <td><span class="ch">Local changes in density, colour or texture highlight anomalies.</span>
+            <span class="cog">Local feature contrast pops out pre-attentively (Ware 2021); framing departures from a baseline supports correct anomaly reasoning (Padilla et al. 2018).</span></td>
+        </tr>
+        <tr>
+          <td class="p">P4</td>
+          <td>Uncertainty</td>
+          <td><span class="ch">Dynamic variability — movement, density and system behaviour — expresses uncertainty.</span>
+            <span class="cog">Frequency/ensemble and animated representations of uncertainty are decoded more faithfully than static error bars (Hullman et al. 2015; Kale et al. 2019; Padilla et al. 2018).</span></td>
+        </tr>
+        <tr>
+          <td class="p">P5</td>
+          <td>Secondary ordered variables</td>
+          <td><span class="ch">Sound carries secondary variables without overloading the visual channel.</span>
+            <span class="cog">Sonification offloads ordered information to an under-used modality; rhythm maps to intensity (Hermann, Hunt &amp; Neuhoff 2011).</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>References</h3>
+    <ul class="refs">
+      <li>Bertin, J. (1967). <em>Sémiologie graphique</em>.</li>
+      <li>Cleveland, W. S., &amp; McGill, R. (1984). Graphical perception. <em>JASA</em>.</li>
+      <li>Munzner, T. (2014). <em>Visualization Analysis &amp; Design</em>.</li>
+      <li>Ware, C. (2021). <em>Information Visualization: Perception for Design</em>.</li>
+      <li>Sterman, J. D. (2008). Risk communication on climate. <em>Science</em>.</li>
+      <li>Padilla, L., et al. (2018). Decision making with visualizations: a cognitive framework.</li>
+      <li>Hullman, J., et al. (2015). Hypothetical outcome plots (HOPs).</li>
+      <li>Kale, A., et al. (2019). Uncertainty visualization &amp; decision making.</li>
+      <li>Hermann, T., Hunt, A., &amp; Neuhoff, J. (2011). <em>The Sonification Handbook</em>.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <div>
+      <span class="tag">RAPID 26.5&deg;N</span><span class="tag">PCA latent modes</span>
+      <span class="tag">Isolation Forest</span><span class="tag">Copernicus ensemble</span>
+      <span class="tag">Sonification</span>
+    </div>
+    Living Atlantic — MSc thesis research artefact. Every perceivable element is traceable to a dataset
+    value or a declared computational transformation.
+  </footer>
+
+</div>
+</body>
+</html>
