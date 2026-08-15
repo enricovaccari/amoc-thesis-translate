@@ -52,6 +52,16 @@ export const CONTEXT = {
       'Where the lines sit close together, the models agree with each other; where they spread apart, they disagree.',
       'Follow the three lines from one end of the record to the other.',
     ],
+    // The "i" panel: general project + data context, non-leading. No machine
+    // learning, no interaction specifics, no answer — identical in every
+    // condition (static, experiential, TOT).
+    infoTitle: 'About this visualization',
+    infoLines: [
+      'A research visualization from an MSc thesis at Tomorrow University &mdash; the &ldquo;Living Atlantic&rdquo; project.',
+      'It shows the same Atlantic circulation estimated by three independent reanalysis models (Copernicus Marine GREP ensemble: C-GLORS, GLORYS, ORAS5).',
+      'Each line is one model&rsquo;s estimate of the same quantity, month by month, in Sverdrup (1 Sv &asymp; the combined flow of all the world&rsquo;s rivers).',
+      'Nothing here tells you what to conclude &mdash; follow the three lines and form your own reading.',
+    ],
   },
   it: {
     source: 'RIANALISI D&rsquo;INSIEME COPERNICUS MARINE GREP &middot; 26.5&deg;N &middot; C-GLORS / GLORYS / ORAS5 &middot; DOI 10.48670/MOI-00024',
@@ -69,6 +79,13 @@ export const CONTEXT = {
       'Tre modelli diversi, che cercano tutti di calcolare la stessa cosa sullo stesso oceano.',
       'Dove le linee sono vicine tra loro, i modelli concordano; dove si allontanano, non concordano.',
       'Segui le tre linee da un capo all&rsquo;altro del periodo.',
+    ],
+    infoTitle: 'Informazioni sulla visualizzazione',
+    infoLines: [
+      'Una visualizzazione di ricerca da una tesi magistrale alla Tomorrow University &mdash; il progetto &ldquo;Living Atlantic&rdquo;.',
+      'Mostra la stessa circolazione atlantica stimata da tre modelli di rianalisi indipendenti (insieme Copernicus Marine GREP: C-GLORS, GLORYS, ORAS5).',
+      'Ogni linea &egrave; la stima di un modello della stessa quantit&agrave;, mese per mese, in Sverdrup (1 Sv &asymp; la portata di tutti i fiumi del mondo messi insieme).',
+      'Niente qui ti dice cosa concludere &mdash; segui le tre linee e formati la tua lettura.',
     ],
   },
 };
@@ -111,4 +128,13 @@ export function readingLines(lang = 'en', vars) {
 export function helpContent(lang = 'en') {
   const c = ctx(lang);
   return { title: c.helpTitle, lines: c.helpLines };
+}
+
+/**
+ * The "i" info panel's content — { title, lines } — for shared/scene-frame.js.
+ * General project + data context only; byte-identical across every condition.
+ */
+export function infoContent(lang = 'en') {
+  const c = ctx(lang);
+  return { title: c.infoTitle, lines: c.infoLines };
 }

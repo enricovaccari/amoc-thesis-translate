@@ -1120,14 +1120,16 @@ function draw(){
     const [a, b] = posAt(tk);
     let x = SX(a), y = SY(b);
     const tb = cond === 'C3' ? anomAt(tk) : 0;
-    if (tb > 0){
-      x += Math.sin(tk * 47.13 + frame * 0.11) * tb * 6;
-      y += Math.cos(tk * 61.71 + frame * 0.13) * tb * 6;
+    if (tb > 0){                                   // shake amplitude ∝ the real anomaly level
+      x += Math.sin(tk * 47.13 + frame * 0.11) * tb * 7;
+      y += Math.cos(tk * 61.71 + frame * 0.13) * tb * 7;
     }
     if (prev){
       const f = k / STEPS;
-      g.strokeStyle = COL.beacon;
-      g.globalAlpha = Math.pow(f, 1.4) * 0.7;
+      // data-driven colour: cool blue where typical, warm where more unusual
+      // (was hard-coded beacon → always orange).
+      g.strokeStyle = anomColor(tb);
+      g.globalAlpha = Math.pow(f, 1.4) * 0.78;
       g.lineWidth = 0.8 + 2.2 * f;
       g.beginPath(); g.moveTo(prev[0], prev[1]); g.lineTo(x, y); g.stroke();
     }

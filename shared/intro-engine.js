@@ -24,7 +24,8 @@
 
 export const INTRO = {
   en: {
-    title: 'The Engine Room — the Atlantic as a moving state',
+    title: 'The Engine Room',
+    subtitle: 'The Atlantic as a moving state',
     paragraphs: [
       'Scene I showed the Atlantic as a tall column of water. This scene shows ' +
       'the same twenty years in a different way: each month, the entire state ' +
@@ -35,14 +36,14 @@ export const INTRO = {
       'different one.',
     ],
     anchorQuestion:
-      'Watching the ocean move from state to state over time, does it always ' +
-      'go to new places, or does it sometimes pass back through where it has ' +
-      'already been?',
+      'From state to state, does the ocean always go somewhere new? Or do you ' +
+      'think it sometimes passes back through where it has been?',
     anchorHold: 'Hold your answer in mind.',
     button: 'Show me the map',
   },
   it: {
-    title: 'Il Motore — l’Atlantico come stato in movimento',
+    title: 'Il Motore',
+    subtitle: 'L’Atlantico come stato in movimento',
     paragraphs: [
       'La Scena I mostrava l’Atlantico come un’alta colonna d’acqua. Questa ' +
       'scena mostra gli stessi vent’anni in un modo diverso: ogni mese, ' +
@@ -54,20 +55,28 @@ export const INTRO = {
       'diverso.',
     ],
     anchorQuestion:
-      'Guardando l’oceano spostarsi da uno stato all’altro nel tempo, va ' +
-      'sempre verso posti nuovi, o a volte ripassa da dove è già stato?',
+      'Di stato in stato, l’oceano va sempre verso posti nuovi? O pensi che a ' +
+      'volte ripassi da dove è già stato?',
     anchorHold: 'Tieni a mente la tua risposta.',
     button: 'Mostrami la mappa',
   },
 };
 
-/** Render the intro as HTML. Both conditions call this with the same lang. */
+/**
+ * Render the intro as HTML. Both conditions call this with the same lang.
+ * Short TITLE centred, SUBTITLE directly under it (smaller italic serif), body
+ * copy + question LEFT-ALIGNED. Inline styles override each file's own
+ * #intro/#intro-screen CSS so the three conditions stay consistent by
+ * construction (see intro-column.js for the rationale).
+ */
 export function introHTML(lang = 'en') {
   const t = INTRO[lang] || INTRO.en;
   return (
-    `<h2>${t.title}</h2>` +
-    t.paragraphs.map((p) => `<p>${p}</p>`).join('') +
-    `<p class="anchor-question">${t.anchorQuestion}` +
+    `<h2 style="margin:0 0 9px">${t.title}</h2>` +
+    `<div class="intro-subtitle" style="font-family:Georgia,'Times New Roman',serif;` +
+      `font-style:italic;font-size:14px;letter-spacing:2px;opacity:.62;margin:0 0 30px">${t.subtitle}</div>` +
+    t.paragraphs.map((p) => `<p style="text-align:left">${p}</p>`).join('') +
+    `<p class="anchor-question" style="text-align:left">${t.anchorQuestion}` +
       `<span style="display:block;margin-top:14px;font-size:11px;opacity:.55">${t.anchorHold}</span></p>` +
     `<button id="intro-continue" type="button">${t.button}</button>`
   );

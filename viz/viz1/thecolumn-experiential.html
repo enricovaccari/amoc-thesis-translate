@@ -79,12 +79,16 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 #dynamic-label{color:var(--beacon);font-family:ui-monospace,monospace;font-size:11px;margin-top:14px;text-transform:uppercase;letter-spacing:2px;min-height:14px}
 
 /* Orientation: geographic axis of the section (S ← → N) + latitude label */
-#orient{position:absolute;top:40px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none}
+/* Orientation compass — sits in the title band (no longer floating high above
+   the scene label). Its label is width-capped so the whole compass stays narrow
+   enough to clear the wordmark (left) and the data block (right) in both langs. */
+#orient{position:absolute;top:48px;left:calc(50% - 30px);transform:translateX(-50%);text-align:center;pointer-events:none}
 #orient svg{display:block;margin:0 auto}
-#orient .lat{margin-top:4px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:2px;opacity:.5;text-transform:uppercase}
-/* Atmospheric intro, floating in the black space above the visualization */
-#intro-line{position:absolute;top:96px;left:50%;transform:translateX(-50%);max-width:440px;text-align:center;
-  font-size:12px;line-height:1.55;opacity:.6}
+#orient .lat{max-width:210px;margin:4px auto 0;line-height:1.4;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;text-transform:uppercase}
+/* Atmospheric tagline — ONE line, left-aligned in the upper-left identity stack
+   (under the credit), clear of the right-hand data block. */
+#intro-line{position:absolute;top:130px;left:50px;max-width:none;white-space:nowrap;text-align:left;
+  font-size:11px;line-height:1.55;opacity:.55}
 [data-hint]{pointer-events:auto}
 
 /* === E. CONTROLLI (top-right) — hint just before the buttons === */
@@ -101,7 +105,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
    the EN/IT toggle */
 /* Sits on the language-toggle row, to its LEFT — clear of both the toggle
    (right) and the orientation compass (above, centre). */
-#context-top{position:absolute;top:96px;right:170px;width:380px;text-align:center;pointer-events:none}
+#context-top{position:absolute;top:62px;right:170px;width:380px;text-align:left;pointer-events:none}
 #context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
   color:var(--ink-soft);letter-spacing:.4px}
 #context-top #source{margin-top:10px;font-family:ui-monospace,monospace;font-size:8.5px;
@@ -122,7 +126,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
   font-size:10.5px;line-height:1.65}
 /* width:max-content + nowrap: every colour description stays on ONE line in
    both languages (the Italian labels are longer), keeping the panel short */
-#flow-legend{position:absolute;right:40px;bottom:16px;width:max-content;max-width:360px;pointer-events:auto}
+#flow-legend{position:absolute;right:40px;bottom:24px;width:max-content;max-width:360px;pointer-events:auto}
 .flow-item{display:flex;align-items:center;gap:8px;margin:4px 0;letter-spacing:.5px;text-transform:uppercase;font-size:9px;white-space:nowrap}
 .swatch{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
 /* Explanatory caption below the visualization — a plain, subtle line (no bar,
@@ -136,7 +140,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 .g-row{margin-bottom:8px}
 
 /* === E5. CONTROLLI (bottom-left): playback speed + particle density (C2/C3) === */
-#controls{position:absolute;left:40px;bottom:122px;display:none;flex-direction:column;gap:8px;pointer-events:auto}
+#controls{position:absolute;left:40px;bottom:112px;display:none;flex-direction:column;gap:8px;pointer-events:auto}
 .ctrl-group{display:flex;align-items:center;gap:10px}
 .ctrl-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;width:58px}
 .ctrl-seg{display:flex;gap:4px}
@@ -199,9 +203,11 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 
 /* Info "i" beside AMOC intensity — integrated, minimal, clickable (opens the
    dedicated information page in a new tab). Hover shows a summary card. */
+/* Opacity/border matched to the shared "?" (scene-frame .sf-btn) so the two
+   icons read as one set. */
 #amoc-info{display:none;margin-left:14px;width:22px;height:22px;line-height:20px;text-align:center;
-  border:1px solid rgba(255,179,92,.7);border-radius:50%;font-size:13px;font-style:italic;color:var(--beacon);
-  cursor:pointer;pointer-events:auto;vertical-align:middle;opacity:.9;transition:.25s}
+  border:1px solid rgba(255,179,92,.62);border-radius:50%;font-size:12px;font-style:italic;color:var(--beacon);
+  cursor:pointer;pointer-events:auto;vertical-align:middle;opacity:.85;transition:.25s}
 #amoc-info:hover{opacity:1;background:rgba(255,179,92,.28);border-color:var(--beacon);
   box-shadow:0 0 16px rgba(255,179,92,.6);text-shadow:0 0 6px rgba(255,179,92,.8)}
 #info-card{position:fixed;display:none;z-index:210;width:300px;background:rgba(4,16,30,.97);
@@ -214,6 +220,10 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
   border:1px solid rgba(255,179,92,.75);background:rgba(255,179,92,.2);cursor:pointer;
   pointer-events:auto;transition:.2s}
 .ev-mark:hover{background:rgba(255,179,92,.6);box-shadow:0 0 8px rgba(255,179,92,.4)}
+/* Clicked/selected anomaly: filled + a soft glow so it reads as "held" while
+   exploring. Cleared on Resume Auto. Deliberately restrained, not dominant. */
+.ev-mark.lit{background:rgba(255,179,92,.9);border-color:var(--beacon,#ffb35c);
+  box-shadow:0 0 10px rgba(255,179,92,.75);width:8px;height:8px}
 
 /* === H. CURSORE (minimale: punto + anello che segue morbido) === */
 /* Always visible, on EVERY screen (landing, intro, visualization): the filled
@@ -222,15 +232,19 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
   will-change:transform;opacity:1;transition:opacity .3s}
 #cursor-dot{width:5px;height:5px;background:#fff}
 /* slower, softer lag: the outer ring takes noticeably longer to catch up */
+/* transform is eased in JS (rAF lerp) for frame-smooth motion — only opacity/size transition here */
 #cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
-  transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s,width .2s,height .2s}
+  transition:opacity .3s,width .2s,height .2s}
 
 #load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
 
-/* Ownership credit — visible on every screen, deliberately unobtrusive */
-#credit{position:fixed;bottom:6px;left:40px;z-index:55;pointer-events:none;
+/* Ownership credit — directly under the scene label, in the upper-left identity
+   stack. Shown ONLY on the visualization screen (hidden on the landing + intro),
+   at the SAME position in all three experiential scenes (top:136/left:50). */
+#credit{position:fixed;top:112px;left:50px;z-index:55;pointer-events:none;
   font-family:ui-monospace,monospace;font-size:8px;letter-spacing:1.5px;
   text-transform:uppercase;color:var(--ink);opacity:.35}
+body.pre-start #credit{display:none}
 
 /* === G. SPLASH === */
 /* Fully opaque, self-contained intro: its own bokeh layer, nothing of the
@@ -255,7 +269,9 @@ body.pre-start #ui{opacity:0}
    continues. === */
 #intro-screen{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
   text-align:center;background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
-#intro-screen .panel{max-width:560px;padding:0 32px}
+/* same subtle floating bokeh as the landing screen, behind the intro panel */
+#intro-bokeh{position:absolute;inset:0;z-index:0;display:block}
+#intro-screen .panel{position:relative;z-index:1;max-width:560px;padding:0 32px}
 #intro-screen h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;
   letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
 #intro-screen p{font-size:13px;line-height:1.9;color:var(--ink-soft);margin:0 0 18px}
@@ -284,7 +300,7 @@ body.pre-start #ui{opacity:0}
 
 <!-- Screen 2: the shared narrative intro (shared/intro-column.js) — identical in
      every condition; only what follows it differs. -->
-<div id="intro-screen"><div class="panel" id="intro-screen-panel"></div></div>
+<div id="intro-screen"><canvas id="intro-bokeh"></canvas><div class="panel" id="intro-screen-panel"></div></div>
 
 <div id="lang-toggle">
   <button id="lang-en" class="active">EN</button>
@@ -408,10 +424,12 @@ import { describesHTML, sourceHTML, helpContent } from '../../shared/context-col
 import { mountSceneFrame } from '../../shared/scene-frame.js';
 window.LA_INTRO = { INTRO, introHTML, anchorQuestionHTML };
 window.LA_CONTEXT = { describesHTML, sourceHTML, helpContent };
-// Persistent driving question + "?" help panel — the SAME module, the SAME two
-// strings as column-static.html (shared/scene-frame.js). Hidden until screen 3;
-// the question is already on view inside the intro panel before that.
-window.LA_FRAME = mountSceneFrame();
+// On-figure "?" help panel — the SAME module and content as column-static.html
+// (shared/scene-frame.js). This scene already has its own "i" (the AMOC-intensity
+// control that opens the documentation page), so the frame adds only the "?"
+// beside it. Hidden until screen 3; the driving question is asked once on the
+// intro screen, not repeated here.
+window.LA_FRAME = mountSceneFrame({ pos: { left: '384px', bottom: '80px' }, hasInfo: false });
 window.LA_CORE = { loadBundle, deriveAnchors, velocity, reconstructProfile, COL, INK, FONT };
 window.COL = COL;                    // canvas code reads the shared palette
 if (window.__relang) window.__relang();
@@ -762,7 +780,10 @@ function buildEventMarks(){
   const wrap = document.getElementById('event-marks');
   wrap.innerHTML = top.map((c,k) => {
     const idx = monthIdx(c.t_start);
-    return '<div class="ev-mark" data-k="' + k + '" style="left:' + (idx/(nT-1)*100).toFixed(2) + '%"></div>';
+    // Align each diamond with the slider THUMB, which travels within
+    // (track − thumbWidth). A raw % overlay drifts a few px off the white thumb;
+    // this calc puts the diamond centre exactly where the 12px thumb centre lands.
+    return '<div class="ev-mark" data-k="' + k + '" style="left:calc(6px + (100% - 12px) * ' + (idx/(nT-1)).toFixed(4) + ')"></div>';
   }).join('');
 
   const cardFor = c => {
@@ -787,6 +808,10 @@ function buildEventMarks(){
     });
     el.addEventListener('mouseleave', () => { cardEl.style.display = 'none'; });
     el.addEventListener('click', () => {           // jump the timeline to the event
+      // illuminate this anomaly and hold it while the user explores; only one
+      // is lit at a time. Resume Auto (setPlaying(true)) clears the highlight.
+      wrap.querySelectorAll('.ev-mark.lit').forEach(m => m.classList.remove('lit'));
+      el.classList.add('lit');
       setPlaying(false);
       tFloat = monthIdx(c.t_start);
       timeEl.value = Math.round(tFloat);
@@ -992,9 +1017,16 @@ function draw(){
       // gentle meander: paths curve softly like fluid streamlines, never straight.
       // Amplitude scales WITH speed so near-zero flow visibly STALLS instead of
       // wiggling in place; anomalous months add irregular jitter (P3, no label).
-      const wob = (5 + p.s*3.2) * (0.35 + 0.65*spd01) * (1 + turb*1.6);
-      const y  = yOfDepth(DEPTH[p.i], L) + Math.sin(p.x*0.015 + p.ph) * wob
-               + (turb > 0 ? Math.sin(p.x*0.11 + p.ph*7 + frame*0.03) * turb * 8 : 0);
+      const wob = (5 + p.s*3.2) * (0.35 + 0.65*spd01) * (1 + turb*1.2);
+      // Vertical waviness is a smooth function of the parcel's POSITION only
+      // (never of the frame clock), so every recorded tail point lies on one
+      // continuous streamline — no zig-zag from temporally-incoherent jitter.
+      // Turbulence (P3) adds a second, LOW-frequency spatial harmonic: the path
+      // weaves more in anomalous months, still smoothly (low freq → no aliasing
+      // when the tail is sampled every few frames).
+      const y  = yOfDepth(DEPTH[p.i], L)
+               + Math.sin(p.x*0.015 + p.ph) * wob
+               + (turb > 0 ? Math.sin(p.x*0.026 + p.ph*3.3) * turb * 8 : 0);
       // advection ∝ ∂Ψ/∂z; anomaly adds per-parcel speed irregularity
       p.x += vz * FLOW_GAIN * speedMul * (1 + (turb > 0 ? turb*0.6*Math.sin(p.ph*13 + frame*0.05) : 0));
       let wrapped = false;
@@ -1248,23 +1280,41 @@ function stopAudio(){
 // follows smoothly (CSS transition). No trail, no effect on the particles.
 const curDot = document.getElementById('cursor-dot');
 const curRing = document.getElementById('cursor-ring');
+// Frame-smooth custom cursor. The dot tracks the pointer INSTANTLY (set right in
+// moveCursor, so it never depends on rAF and can never lag or freeze). The ring
+// trails softly, eased every frame by one rAF loop — fluid at any refresh rate,
+// no jitter/snapping from sparse pointer events. (The ring is no longer
+// CSS-transitioned; JS owns its transform.)
+let curTX = innerWidth/2, curTY = innerHeight/2;           // pointer target (for the ring)
+let ringX = curTX, ringY = curTY;                          // eased ring position
 function moveCursor(x, y){
-  curDot.style.transform  = 'translate(' + (x-2.5) + 'px,' + (y-2.5) + 'px)';
-  curRing.style.transform = 'translate(' + (x-15) + 'px,' + (y-15) + 'px)';
+  curTX = x; curTY = y;
+  curDot.style.transform = 'translate(' + (x-2.5) + 'px,' + (y-2.5) + 'px)';   // dot: instant
 }
-moveCursor(innerWidth/2, innerHeight/2);   // parked at centre until the first mousemove
+function cursorLoop(){
+  ringX += (curTX - ringX) * 0.18;  ringY += (curTY - ringY) * 0.18;           // soft trailing ring
+  curRing.style.transform = 'translate(' + (ringX-15) + 'px,' + (ringY-15) + 'px)';
+  requestAnimationFrame(cursorLoop);
+}
+moveCursor(innerWidth/2, innerHeight/2);   // park the dot at centre until the first mousemove
+cursorLoop();
 
-// 4b. Bokeh — the title screen's own background layer: soft, blurred, drifting
-// light spots. Independent of the visualization; stops the moment we start.
-const bokehCv = document.getElementById('bokeh');
-const bg = bokehCv.getContext('2d');
+// 4b. Bokeh — soft, blurred, drifting light spots, shown on BOTH the landing
+// screen and the intro screen (screen 2). One set of spots is advanced each
+// frame and painted onto whichever of the two canvases is currently visible.
+// Stops the moment the visualization starts.
+const bokehCanvases = ['bokeh', 'intro-bokeh']
+  .map(id => document.getElementById(id)).filter(Boolean)
+  .map(cv => ({ cv, g: cv.getContext('2d') }));
 let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
 function resizeBokeh(){
   const dpr = window.devicePixelRatio || 1;
   bokehW = innerWidth; bokehH = innerHeight;
-  bokehCv.width = Math.round(bokehW*dpr); bokehCv.height = Math.round(bokehH*dpr);
-  bokehCv.style.width = bokehW+'px'; bokehCv.style.height = bokehH+'px';
-  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (const { cv, g } of bokehCanvases){
+    cv.width = Math.round(bokehW*dpr); cv.height = Math.round(bokehH*dpr);
+    cv.style.width = bokehW+'px'; cv.style.height = bokehH+'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
   if (!bokehSpots.length) seedBokeh();
 }
 function seedBokeh(){
@@ -1279,20 +1329,25 @@ function seedBokeh(){
 }
 function drawBokeh(){
   if (!bokehOn) return;
-  bg.clearRect(0, 0, bokehW, bokehH);
-  bg.globalCompositeOperation = 'lighter';
-  for (const s of bokehSpots){
+  for (const s of bokehSpots){                          // advance the spots once
     s.x += s.vx; s.y += s.vy;
     if (s.y + s.r < 0)      s.y = bokehH + s.r;
     if (s.x < -s.r)         s.x = bokehW + s.r;
     if (s.x > bokehW + s.r) s.x = -s.r;
-    const grd = bg.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
-    grd.addColorStop(0, 'rgba(' + s.hue + ',' + s.a + ')');
-    grd.addColorStop(1, 'rgba(' + s.hue + ',0)');
-    bg.fillStyle = grd;
-    bg.beginPath(); bg.arc(s.x, s.y, s.r, 0, Math.PI*2); bg.fill();
   }
-  bg.globalCompositeOperation = 'source-over';
+  for (const { cv, g } of bokehCanvases){               // paint every VISIBLE canvas
+    if (cv.offsetParent === null) continue;             // skip hidden screens
+    g.clearRect(0, 0, bokehW, bokehH);
+    g.globalCompositeOperation = 'lighter';
+    for (const s of bokehSpots){
+      const grd = g.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+      grd.addColorStop(0, 'rgba(' + s.hue + ',' + s.a + ')');
+      grd.addColorStop(1, 'rgba(' + s.hue + ',0)');
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(s.x, s.y, s.r, 0, Math.PI*2); g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
   requestAnimationFrame(drawBokeh);
 }
 
@@ -1301,6 +1356,8 @@ let playing = true;                               // AUTO by default in C2/C3
 function setPlaying(p){
   playing = p;
   document.getElementById('play-toggle').innerHTML = p ? T('pause') : T('resume');
+  // Resume Auto returns any clicked anomaly to its normal outline state.
+  if (p) document.querySelectorAll('#event-marks .ev-mark.lit').forEach(m => m.classList.remove('lit'));
 }
 
 // P5 — sonification is OFF BY DEFAULT (shared rooms; unrequested audio is an
@@ -1475,7 +1532,7 @@ document.getElementById('splash').addEventListener('click', () => {
   const s = document.getElementById('splash');
   s.style.opacity = '0';
   s.style.pointerEvents = 'none';
-  setTimeout(() => { s.style.display = 'none'; bokehOn = false; }, 1300);  // stop the intro layer
+  setTimeout(() => { s.style.display = 'none'; }, 1300);  // hide splash; bokeh keeps drifting on the intro screen
   if (window.LA_INTRO){
     const scr = document.getElementById('intro-screen');
     scr.querySelector('.panel').innerHTML = window.LA_INTRO.introHTML(lang);
@@ -1494,6 +1551,7 @@ document.getElementById('intro-screen').addEventListener('click', e => {
 
 function startVisualization(){
   document.body.classList.remove('pre-start');
+  bokehOn = false;                                // stop the bokeh once the visualization is shown
   if (window.LA_FRAME) window.LA_FRAME.show(true); // the question stays for the whole scene
   setCond('C3');                                  // Experiential, permanently; sound stays OFF until its own toggle
 }
@@ -1534,10 +1592,10 @@ function applyLang(l){
   const introScr = document.getElementById('intro-screen');
   if (introScr.style.display === 'flex' && window.LA_INTRO)
     introScr.querySelector('.panel').innerHTML = window.LA_INTRO.introHTML(l);
-  // Persistent question + "?" help — both strings come from the shared modules,
-  // so both are byte-identical to column-static.html. Empty until they load.
-  if (window.LA_FRAME && window.LA_INTRO && window.LA_CONTEXT)
-    window.LA_FRAME.render(l, window.LA_INTRO.anchorQuestionHTML(l), window.LA_CONTEXT.helpContent(l));
+  // "?" help — content from the shared module, byte-identical to
+  // column-static.html. Empty until the module bridge has loaded.
+  if (window.LA_FRAME && window.LA_CONTEXT)
+    window.LA_FRAME.render(l, { help: window.LA_CONTEXT.helpContent(l) });
   setPlaying(playing);                             // refresh PAUSE/RESUME label
   refreshSoundBtn();                               // refresh SOUND ON/OFF label
   if (dataLoaded){

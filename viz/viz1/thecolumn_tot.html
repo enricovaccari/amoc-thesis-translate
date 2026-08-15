@@ -724,7 +724,8 @@ function buildEventMarks(){
   const wrap = document.getElementById('event-marks');
   wrap.innerHTML = top.map((c,k) => {
     const idx = monthIdx(c.t_start);
-    return '<div class="ev-mark" data-k="' + k + '" style="left:' + (idx/(nT-1)*100).toFixed(2) + '%"></div>';
+    // align the diamond with the slider thumb (travels within track − 12px thumb)
+    return '<div class="ev-mark" data-k="' + k + '" style="left:calc(6px + (100% - 12px) * ' + (idx/(nT-1)).toFixed(4) + ')"></div>';
   }).join('');
 
   const cardFor = c => {

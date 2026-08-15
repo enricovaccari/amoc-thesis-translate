@@ -1,85 +1,86 @@
 /**
- * scene-frame.js — the PERSISTENT DRIVING QUESTION and the "?" HELP panel,
- * shared IDENTICALLY by both conditions of every scene.
+ * scene-frame.js — the on-figure HELP ("?") and INFO ("i") affordances, shared
+ * IDENTICALLY by both conditions of every scene.
  *
- * SYMMETRY RULE (§7.2.2, Tversky 2019): the question is the measurement
- * instrument and the help teaches the instrument. Both must therefore be
- * byte-identical across conditions — only the REPRESENTATION may differ,
- * never the task or the teaching. This file is the single definition of the
- * markup, the styling and the behaviour of both; the static and experiential
- * file of each scene call the same mountSceneFrame() and feed it the same two
- * strings, so identity is a property of the code, not a promise.
+ * (The persistent driving-question bar that used to live here was retired: the
+ * question is asked once, on the intro screen, and is NOT repeated on the
+ * visualisation — the same in every condition, so framing stays symmetric.)
  *
- * WHERE THE TEXT COMES FROM (never typed here):
- *   question → shared/intro-*.js  anchorQuestionHTML(lang) — byte-identical to
- *              the anchor question the shared intro screen already shows.
- *   help     → shared/context-*.js helpContent(lang) — the same teaching floor
- *              as the on-figure caption lines, restated in plain words.
+ * SYMMETRY RULE (§7.2.2, Tversky 2019): the help teaches how to READ the
+ * instrument and the info gives project/data context. Both are fed from the
+ * shared context-*.js modules, so the static and experiential file of a scene
+ * show byte-identical panels — identity is a property of the code.
  *
- * THE HARD LINE — neither element may ever answer the question. The bar states
- * the task; the panel teaches how to read the instrument. Nothing here says
- * what the reading IS: no "opposite", no "returns", no "equilibrium", no
- * "recurs", no "less certain", no "converge".
+ * THE HARD LINE — neither panel may ever answer the question. The "?" says how
+ * to read; the "i" says what the project/data is. Nothing here states the
+ * reading: no "opposite", "returns", "equilibrium", "recurs", "less certain",
+ * "converge". No machine-learning internals, no "what to notice".
  *
- * LAYOUT: the bar occupies the strip above y ≈ 30 px, which is empty in all six
- * scene files (their chrome starts at 34–50 px and every plotting region starts
- * lower still), so it never covers a visualisation. The "?" button sits in the
- * top-left corner; its panel opens beneath it, clear of the language toggle and
- * of every scene's own controls, and is dismissible (button, ×, Esc).
+ * PLACEMENT: mountSceneFrame({ pos, hasInfo, infoUrl }) drops a small control
+ * cluster (optional "i" + always "?") at the fixed position each file passes,
+ * so a scene can sit it under its language toggle (static) or beside its month
+ * readout (experiential). Panels open anchored to the cluster, clamped inside
+ * the viewport, and are dismissible (×, Esc, toggle, click-away). Only one panel
+ * is open at a time.
  *
- * NON-INFORMATIONAL scaffolding (Table 7.2): no value here encodes a number
- * from the bundle. Colours and fonts fall back to shared/palette.js through the
- * CSS custom properties each scene file already sets.
+ * NON-INFORMATIONAL scaffolding (Table 7.2): no value here encodes bundle data.
+ * Colours/fonts fall back to shared/palette.js via the CSS custom properties
+ * each scene file already sets.
  */
 
-/** UI chrome for the frame itself — labels only, never content. */
+/** UI chrome for the affordances themselves — labels only, never content. */
 export const FRAME = {
-  en: { helpBtn: 'How to read this scene', close: 'Close' },
-  it: { helpBtn: 'Come si legge questa scena', close: 'Chiudi' },
+  en: { helpBtn: 'How to read this scene', infoBtn: 'About this visualization', close: 'Close' },
+  it: { helpBtn: 'Come si legge questa scena', infoBtn: 'Informazioni sulla visualizzazione', close: 'Chiudi' },
 };
 
 const CSS = `
-#scene-question{position:fixed;top:0;left:0;right:0;z-index:58;display:none;pointer-events:none;
-  padding:7px 100px 9px;text-align:center;
+#scene-controls{position:fixed;z-index:59;display:flex;gap:11px;pointer-events:auto}
+.sf-btn{width:22px;height:22px;padding:0;line-height:20px;text-align:center;border-radius:50%;
+  background:transparent;border:1px solid rgba(255,179,92,.62);color:var(--beacon,#ffb35c);
   font-family:var(--font-mono,ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace);
-  font-size:clamp(8.8px,0.75vw,10.5px);line-height:1.55;letter-spacing:.3px;
-  color:var(--ink-soft,rgba(231,240,247,.55));
-  background:linear-gradient(180deg,rgba(1,8,17,.82) 0%,rgba(1,8,17,.54) 62%,rgba(1,8,17,0) 100%)}
-#scene-question .sq-text{display:inline-block;max-width:1040px}
+  font-size:12px;letter-spacing:0;cursor:none;pointer-events:auto;opacity:.85;
+  transition:opacity .25s,background .25s,border-color .25s}
+.sf-btn.info-i{font-family:Georgia,'Times New Roman',serif;font-style:italic}
+.sf-btn:hover,.sf-btn.open{opacity:1;background:rgba(255,179,92,.22);border-color:var(--beacon,#ffb35c)}
 
-#scene-help-btn{position:fixed;top:3px;left:40px;z-index:59;display:none;
-  width:21px;height:21px;padding:0;line-height:19px;text-align:center;border-radius:50%;
-  background:transparent;border:1px solid rgba(255,179,92,.5);color:var(--beacon,#ffb35c);
-  font-family:var(--font-mono,ui-monospace,monospace);font-size:11px;letter-spacing:0;
-  cursor:none;pointer-events:auto;opacity:.7;transition:.25s}
-#scene-help-btn:hover,#scene-help-btn.open{opacity:1;background:rgba(255,179,92,.22);
-  border-color:var(--beacon,#ffb35c)}
-
-#scene-help{position:fixed;top:32px;left:40px;z-index:120;display:none;
+.sf-panel{position:fixed;z-index:120;visibility:hidden;opacity:0;transform:translateY(-4px);
+  pointer-events:none;
   width:min(360px,44vw);max-height:72vh;overflow-y:auto;
-  background:rgba(4,16,30,.95);border:1px solid rgba(255,255,255,.12);
+  background:rgba(4,16,30,.96);border:1px solid rgba(255,255,255,.12);
   border-left:2px solid var(--beacon,#ffb35c);box-shadow:0 8px 30px rgba(0,0,0,.5);
-  padding:12px 15px 14px;pointer-events:auto;
+  padding:12px 15px 14px;
+  transition:opacity .2s ease,transform .2s ease,visibility 0s linear .2s;
   font-family:var(--font-mono,ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace)}
-#scene-help .help-h{display:flex;align-items:center;justify-content:space-between;gap:12px;
+.sf-panel.open{visibility:visible;opacity:1;transform:translateY(0);pointer-events:auto;
+  transition:opacity .2s ease,transform .2s ease}
+.sf-panel .sf-h{display:flex;align-items:center;justify-content:space-between;gap:12px;
   font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--beacon,#ffb35c);
   padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.10)}
-#scene-help .help-x{background:none;border:none;padding:0 2px;margin:0;color:var(--beacon,#ffb35c);
+.sf-panel .sf-x{background:none;border:none;padding:0 2px;margin:0;color:var(--beacon,#ffb35c);
   font-family:inherit;font-size:15px;line-height:1;cursor:none;opacity:.6;transition:.2s}
-#scene-help .help-x:hover{opacity:1}
-#scene-help .help-line{margin:9px 0 0;font-size:10.5px;line-height:1.7;letter-spacing:.2px;
-  color:var(--ink,#e7f0f7);opacity:.82}
+.sf-panel .sf-x:hover{opacity:1}
+.sf-panel .sf-line{margin:9px 0 0;font-size:10.5px;line-height:1.7;letter-spacing:.2px;
+  color:var(--ink,#e7f0f7);opacity:.85}
 `;
 
 /**
- * Inject the frame once and return its handle. Idempotent: calling it twice on
- * one page reuses the same nodes.
+ * Inject the affordances once and return a handle. Idempotent per page.
  *
- * Returns { render(lang, question, help), show(on), close() } where
- *   question — the driving question string (from intro-*.js);
- *   help     — { title, lines[] } (from context-*.js).
+ * @param {object} opts
+ *   pos      — CSS position for the control cluster, e.g. { top:'70px', right:'40px' }
+ *              or { left:'40px', bottom:'150px' }. Default: top-right.
+ *   hasInfo  — include the "i" button (default false → "?" only).
+ *   infoUrl  — if set (and hasInfo), the "i" opens this URL in a new tab instead
+ *              of an inline panel (used by Scene I experiential, which already
+ *              has a dedicated documentation page).
+ *
+ * Returns { render(lang, content), show(on), close() } where
+ *   content — { help:{title,lines[]}, info:{title,lines[]}|null }.
  */
-export function mountSceneFrame() {
+export function mountSceneFrame(opts = {}) {
+  const { pos = { top: '70px', right: '40px' }, hasInfo = false, infoUrl = null } = opts;
+
   if (!document.getElementById('scene-frame-css')) {
     const st = document.createElement('style');
     st.id = 'scene-frame-css';
@@ -87,62 +88,109 @@ export function mountSceneFrame() {
     document.head.appendChild(st);
   }
 
-  const make = (tag, id) => {
+  const make = (tag, id, parent) => {
     let el = document.getElementById(id);
     if (!el) {
       el = document.createElement(tag);
       el.id = id;
-      document.body.appendChild(el);
+      (parent || document.body).appendChild(el);
     }
     return el;
   };
 
-  const bar = make('div', 'scene-question');
-  const btn = make('button', 'scene-help-btn');
-  const panel = make('div', 'scene-help');
-  btn.type = 'button';
-  btn.textContent = '?';
-  btn.setAttribute('aria-expanded', 'false');
-  panel.setAttribute('role', 'dialog');
+  const cluster = make('div', 'scene-controls');
+  Object.assign(cluster.style, { top: '', right: '', bottom: '', left: '' }, pos);
 
-  const setOpen = (on) => {
-    panel.style.display = on ? 'block' : 'none';
-    btn.classList.toggle('open', on);
-    btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+  // Buttons: optional "i" then always "?".
+  let infoBtn = null;
+  if (hasInfo) {
+    infoBtn = make('button', 'scene-info-btn', cluster);
+    infoBtn.type = 'button';
+    infoBtn.className = 'sf-btn info-i';
+    infoBtn.textContent = 'i';
+  }
+  const helpBtn = make('button', 'scene-help-btn', cluster);
+  helpBtn.type = 'button';
+  helpBtn.className = 'sf-btn';
+  helpBtn.textContent = '?';
+
+  const helpPanel = make('div', 'scene-help');
+  helpPanel.className = 'sf-panel';
+  helpPanel.setAttribute('role', 'dialog');
+  const infoPanel = (hasInfo && !infoUrl) ? make('div', 'scene-info') : null;
+  if (infoPanel) { infoPanel.className = 'sf-panel'; infoPanel.setAttribute('role', 'dialog'); }
+
+  // Anchor a panel to the control cluster, clamped inside the viewport. Opens
+  // below the cluster if there is room, otherwise above.
+  const anchor = (panel) => {
+    const r = cluster.getBoundingClientRect();
+    const pw = panel.offsetWidth || 360;
+    let left = r.left;
+    if (left + pw > innerWidth - 12) left = innerWidth - 12 - pw;   // keep on-screen
+    left = Math.max(12, left);
+    panel.style.left = left + 'px';
+    const below = r.bottom + 6;
+    if (below + panel.offsetHeight < innerHeight - 12 || r.top < innerHeight / 2) {
+      panel.style.top = below + 'px';
+      panel.style.bottom = 'auto';
+    } else {
+      panel.style.top = 'auto';
+      panel.style.bottom = (innerHeight - r.top + 6) + 'px';
+    }
   };
-  setOpen(false);
 
-  btn.addEventListener('click', (e) => {
+  const setPanel = (panel, on) => {
+    [helpPanel, infoPanel].forEach((p) => { if (p && p !== panel) p.classList.remove('open'); });
+    helpBtn.classList.toggle('open', on && panel === helpPanel);
+    if (infoBtn) infoBtn.classList.toggle('open', on && panel === infoPanel);
+    // visibility-based reveal: no requestAnimationFrame dependency (robust even
+    // when the tab is backgrounded), and closed panels are pointer-events:none.
+    if (on) anchor(panel);
+    panel.classList.toggle('open', on);
+  };
+  const closeAll = () => { setPanel(helpPanel, false); if (infoPanel) setPanel(infoPanel, false); };
+
+  helpBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    setOpen(panel.style.display !== 'block');
+    setPanel(helpPanel, !helpPanel.classList.contains('open'));
   });
-  panel.addEventListener('click', (e) => {
-    if (e.target.classList.contains('help-x')) setOpen(false);
+  if (infoBtn) {
+    infoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (infoUrl) { window.open(infoUrl, '_blank', 'noopener'); return; }
+      setPanel(infoPanel, !infoPanel.classList.contains('open'));
+    });
+  }
+  // Dismiss on ×, Esc, or a click anywhere outside the cluster/panels.
+  [helpPanel, infoPanel].forEach((p) => { if (p) p.addEventListener('click', (e) => { if (e.target.classList.contains('sf-x')) closeAll(); }); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+  document.addEventListener('click', (e) => {
+    if (cluster.contains(e.target)) return;
+    if ([helpPanel, infoPanel].some((p) => p && p.contains(e.target))) return;
+    closeAll();
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') setOpen(false);
-  });
+
+  const fillPanel = (panel, t, data, closeLabel) =>
+    panel.innerHTML =
+      `<div class="sf-h"><span>${data.title}</span>` +
+      `<button type="button" class="sf-x" title="${closeLabel}" aria-label="${closeLabel}">&times;</button></div>` +
+      data.lines.map((l) => `<p class="sf-line">${l}</p>`).join('');
 
   const api = {
-    /** Re-render both texts in `lang`. Called from every scene's applyLang(). */
-    render(lang, question, help) {
+    /** Re-render both panels in `lang`. content = { help, info }. */
+    render(lang, content) {
       const t = FRAME[lang] || FRAME.en;
-      bar.innerHTML = `<span class="sq-text">${question}</span>`;
-      btn.title = t.helpBtn;
-      btn.setAttribute('aria-label', t.helpBtn);
-      panel.innerHTML =
-        `<div class="help-h"><span>${help.title}</span>` +
-        `<button type="button" class="help-x" title="${t.close}" aria-label="${t.close}">&times;</button></div>` +
-        help.lines.map((l) => `<p class="help-line">${l}</p>`).join('');
+      helpBtn.title = t.helpBtn; helpBtn.setAttribute('aria-label', t.helpBtn);
+      if (infoBtn) { infoBtn.title = t.infoBtn; infoBtn.setAttribute('aria-label', t.infoBtn); }
+      if (content && content.help) fillPanel(helpPanel, t, content.help, t.close);
+      if (infoPanel && content && content.info) fillPanel(infoPanel, t, content.info, t.close);
     },
-    /** Reveal the frame with screen 3 — hidden on the landing and intro screens
-     *  (where the same question is already on view inside the intro panel). */
+    /** Reveal the controls with screen 3 — hidden on landing and intro. */
     show(on) {
-      bar.style.display = on ? 'block' : 'none';
-      btn.style.display = on ? 'block' : 'none';
-      if (!on) setOpen(false);
+      cluster.style.display = on ? 'flex' : 'none';
+      if (!on) closeAll();
     },
-    close() { setOpen(false); },
+    close() { closeAll(); },
   };
   api.show(false);
   return api;

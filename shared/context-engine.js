@@ -50,6 +50,16 @@ export const CONTEXT = {
       'The two directions of the map are the two main patterns the ocean varies in. The position itself has no unit.',
       'What matters is which dots are near each other and which are far.',
     ],
+    // The "i" panel: general project + data context, non-leading. No machine
+    // learning, no interaction specifics, no answer — identical in every
+    // condition (static, experiential, TOT).
+    infoTitle: 'About this visualization',
+    infoLines: [
+      'A research visualization from an MSc thesis at Tomorrow University &mdash; the &ldquo;Living Atlantic&rdquo; project.',
+      'It shows the same Atlantic circulation at 26.5&deg;N (RAPID-MOCHA array, 2004&ndash;2024) drawn as a map of monthly states: each point is one month.',
+      'Two points close together are two months when the ocean looked alike; the two axes are the two main patterns it varies in. Position has no unit.',
+      'Nothing here tells you what to conclude &mdash; explore the map and form your own reading.',
+    ],
   },
   it: {
     source: 'RETE RAPID-MOCHA, 26.5&deg;N &middot; 2004&ndash;2024 &middot; MOAT ET AL. (2026) &middot; DOI 10.5285/7086abc062f1',
@@ -67,6 +77,13 @@ export const CONTEXT = {
       'Punti vicini tra loro sono mesi in cui l&rsquo;oceano si somigliava; punti lontani sono mesi in cui era molto diverso.',
       'Le due direzioni della mappa sono i due pattern principali in cui l&rsquo;oceano varia. La posizione in s&eacute; non ha unit&agrave;.',
       'Conta quali punti sono vicini tra loro e quali lontani.',
+    ],
+    infoTitle: 'Informazioni sulla visualizzazione',
+    infoLines: [
+      'Una visualizzazione di ricerca da una tesi magistrale alla Tomorrow University &mdash; il progetto &ldquo;Living Atlantic&rdquo;.',
+      'Mostra la stessa circolazione atlantica a 26.5&deg;N (rete RAPID-MOCHA, 2004&ndash;2024) disegnata come una mappa di stati mensili: ogni punto &egrave; un mese.',
+      'Due punti vicini sono due mesi in cui l&rsquo;oceano si somigliava; i due assi sono i due pattern principali in cui varia. La posizione non ha unit&agrave;.',
+      'Niente qui ti dice cosa concludere &mdash; esplora la mappa e formati la tua lettura.',
     ],
   },
 };
@@ -109,4 +126,13 @@ export function readingLines(lang = 'en', vars) {
 export function helpContent(lang = 'en') {
   const c = ctx(lang);
   return { title: c.helpTitle, lines: c.helpLines };
+}
+
+/**
+ * The "i" info panel's content — { title, lines } — for shared/scene-frame.js.
+ * General project + data context only; byte-identical across every condition.
+ */
+export function infoContent(lang = 'en') {
+  const c = ctx(lang);
+  return { title: c.infoTitle, lines: c.infoLines };
 }

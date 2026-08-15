@@ -24,7 +24,8 @@
 
 export const INTRO = {
   en: {
-    title: 'The Column — the Atlantic seen edge-on',
+    title: 'The Column',
+    subtitle: 'The Atlantic seen edge-on',
     paragraphs: [
       'The ocean is not a still tank of water. The Atlantic is a tall column — ' +
       'almost six kilometres from the surface to the sea floor.',
@@ -33,13 +34,14 @@ export const INTRO = {
       'tall stairwell.',
     ],
     anchorQuestion:
-      'Does the water move all in the same way? If not — how, and in which ' +
-      'directions, does it move?',
+      'Does the water all move the same way along its depth? If not — how, and ' +
+      'in which directions, does it move?',
     anchorHold: 'Hold your answer in mind.',
     button: 'Show me the profile',
   },
   it: {
-    title: 'La Colonna — l’Atlantico visto di taglio',
+    title: 'La Colonna',
+    subtitle: 'L’Atlantico visto di taglio',
     paragraphs: [
       'L’oceano non è una vasca d’acqua immobile. L’Atlantico è un’alta colonna — ' +
       'quasi sei chilometri dalla superficie al fondale.',
@@ -48,20 +50,31 @@ export const INTRO = {
       'separatamente in un’alta tromba delle scale.',
     ],
     anchorQuestion:
-      'L’acqua si muove tutta allo stesso modo? Se no — come, e in quali ' +
-      'direzioni, si muove?',
+      'L’acqua si muove tutta allo stesso modo lungo la sua profondità? Se no — ' +
+      'come, e in quali direzioni, si muove?',
     anchorHold: 'Tieni a mente la tua risposta.',
     button: 'Mostrami il profilo',
   },
 };
 
-/** Render the intro as HTML. Both conditions call this with the same lang. */
+/**
+ * Render the intro as HTML. Both conditions call this with the same lang.
+ *
+ * Layout (shared by every scene, static/experiential/TOT alike, so it stays
+ * consistent by construction): the short TITLE stays centred (inheriting the
+ * panel alignment), the SUBTITLE sits directly under it in a smaller italic
+ * serif, and all body copy + the driving question are LEFT-ALIGNED. The inline
+ * styles override each file's own #intro/#intro-screen CSS so no per-file style
+ * edits are needed and the three conditions can never drift apart.
+ */
 export function introHTML(lang = 'en') {
   const t = INTRO[lang] || INTRO.en;
   return (
-    `<h2>${t.title}</h2>` +
-    t.paragraphs.map((p) => `<p>${p}</p>`).join('') +
-    `<p class="anchor-question">${t.anchorQuestion}` +
+    `<h2 style="margin:0 0 9px">${t.title}</h2>` +
+    `<div class="intro-subtitle" style="font-family:Georgia,'Times New Roman',serif;` +
+      `font-style:italic;font-size:14px;letter-spacing:2px;opacity:.62;margin:0 0 30px">${t.subtitle}</div>` +
+    t.paragraphs.map((p) => `<p style="text-align:left">${p}</p>`).join('') +
+    `<p class="anchor-question" style="text-align:left">${t.anchorQuestion}` +
       `<span style="display:block;margin-top:14px;font-size:11px;opacity:.55">${t.anchorHold}</span></p>` +
     `<button id="intro-continue" type="button">${t.button}</button>`
   );

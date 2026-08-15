@@ -118,17 +118,54 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:2px;cursor:none;transition:.2s}
 #cloud-toggle:hover{border-color:rgba(127,180,217,.8)}
 #cloud-toggle.on{border-color:rgba(127,180,217,.6)}
+/* Both switches belong to the visualization only — hidden on the landing and
+   intro screens (body keeps .pre-start until the participant continues). */
+body.pre-start #anom-toggle,body.pre-start #cloud-toggle{display:none}
 
 /* The anomaly timeline (right side): years × months, filled with playback —
    nudged slightly left so the whole composition stays visually centred */
 #anom-strip{position:absolute;right:70px;top:50%;transform:translateY(-50%);pointer-events:auto;
   display:none;background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:14px 16px}
-.strip-row{display:flex;align-items:center;gap:2px;margin:2px 0}
-.strip-year{font-family:ui-monospace,monospace;font-size:8px;letter-spacing:1px;opacity:.5;width:32px}
-.strip-cell{width:11px;height:11px;border:1px solid rgba(255,255,255,.08);display:inline-block}
+.strip-row{display:flex;align-items:center;gap:2.5px;margin:2.5px 0}
+.strip-year{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;opacity:.5;width:36px}
+.strip-cell{width:13px;height:13px;border:1px solid rgba(255,255,255,.08);display:inline-block}
 .strip-cell.void{border-color:transparent}
 .strip-cell.norm{background:rgba(127,180,217,.25)}
 .strip-cell.hl{outline:1.5px solid var(--beacon)}
+/* Caption above the illuminating boxes — explains what the grid is. Matches the
+   grid width, left-aligned, wraps to ~2 lines. */
+.strip-cap{width:222px;margin:0 0 11px;font-family:ui-monospace,monospace;font-size:9.5px;
+  line-height:1.5;letter-spacing:.3px;color:var(--ink-soft);text-align:left}
+
+/* === LEFT ENCODING LEGEND (mirrors the strip on the right): what the point
+   colour and the path's shakiness mean. Explains the ENCODING only, never the
+   reading. A live vibrating sample sits inside it. === */
+/* Anchored to the upper-left (below the header) rather than vertically centred,
+   so the heading sits clear of the moving trail at the plot's centre. */
+#encode-legend{position:absolute;left:36px;top:124px;
+  width:max-content;max-width:228px;pointer-events:none;
+  background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:16px 18px}
+#encode-legend .el-title{font-family:ui-monospace,monospace;font-size:11.5px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--beacon);padding-bottom:11px;margin-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.12)}
+#encode-legend .el-sub{font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.55;
+  color:var(--ink-soft);margin-bottom:13px}
+#encode-legend .el-ramp{height:13px;border-radius:2px;margin:3px 0 4px;
+  background:linear-gradient(90deg,#7fb4d9 0%,#ffb35c 45%,#ff8a3d 72%,#c65747 100%)}
+#encode-legend .el-scale{display:flex;justify-content:space-between;font-family:ui-monospace,monospace;
+  font-size:10px;letter-spacing:.5px;color:var(--ink-soft);opacity:.9}
+#encode-legend .el-row{display:flex;align-items:center;gap:11px;margin-top:14px;
+  font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.45;color:var(--ink-soft)}
+#encode-legend .el-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto}
+#encode-legend .el-dot.shaky{animation:el-shake .55s linear infinite}
+/* Live motion sample: a line flat on the left, shaking on the right — the same
+   position→shake→colour encoding the trail uses, so it is data-grounded. */
+#encode-legend .el-motion{display:block;width:100%;height:34px;margin:13px 0 4px}
+#encode-legend .el-motioncap{display:flex;justify-content:space-between;font-family:ui-monospace,monospace;
+  font-size:10px;letter-spacing:.5px;color:var(--ink-soft);opacity:.9}
+@keyframes el-shake{0%{transform:translate(0,0)}20%{transform:translate(1.6px,-1.1px)}
+  40%{transform:translate(-1.3px,1.4px)}60%{transform:translate(1.2px,1.2px)}
+  80%{transform:translate(-1.4px,-.8px)}100%{transform:translate(0,0)}}
 
 /* Shared context (describes + source) — ONE visual group, centred over the
    composition; the language switch top edge aligns with it (item 8). */
@@ -198,11 +235,13 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 
 #load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
 
-/* Ownership credit — centred, lifted off the bottom edge, clear of the
-   readouts (left) and reading floor (right) */
-#credit{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:55;pointer-events:none;
-  font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;
-  text-transform:uppercase;color:var(--ink);opacity:.4}
+/* Ownership credit — directly under the scene label, upper-left. Shown ONLY on
+   the visualization screen, at the SAME position as the other experiential
+   scenes (top:112/left:50). */
+#credit{position:fixed;top:112px;left:50px;z-index:55;pointer-events:none;
+  font-family:ui-monospace,monospace;font-size:8px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--ink);opacity:.35}
+body.pre-start #credit{display:none}
 
 /* === I. SPLASH (fully opaque, its own bokeh layer — Scene I identity) === */
 #splash{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -223,7 +262,9 @@ body.pre-start #ui{opacity:0}
        visualization stays hidden until the participant continues) === */
 #intro-screen{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
   text-align:center;background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
-#intro-screen .panel{max-width:560px;padding:0 32px}
+/* same subtle floating bokeh as the landing screen, behind the intro panel */
+#intro-bokeh{position:absolute;inset:0;z-index:0;display:block}
+#intro-screen .panel{position:relative;z-index:1;max-width:560px;padding:0 32px}
 #intro-screen h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;
   letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
 #intro-screen p{font-size:13px;line-height:1.9;color:var(--ink-soft);margin:0 0 18px}
@@ -251,7 +292,7 @@ body.pre-start #ui{opacity:0}
 
 <!-- Screen 2: the shared narrative intro (shared/intro-engine.js) — identical
      in every condition; only what follows it differs. -->
-<div id="intro-screen"><div class="panel" id="intro-screen-panel"></div></div>
+<div id="intro-screen"><canvas id="intro-bokeh"></canvas><div class="panel" id="intro-screen-panel"></div></div>
 
 <div id="lang-toggle">
   <button id="lang-en" class="active">EN</button>
@@ -308,6 +349,8 @@ body.pre-start #ui{opacity:0}
 
   <div id="anom-strip"></div>
 
+  <div id="encode-legend"></div>
+
   <div id="reading-box" class="rail-box"></div>
 
   <div id="load-error"></div>
@@ -326,15 +369,16 @@ body.pre-start #ui{opacity:0}
    - Labels:   trajectory_monthly.time; variance shares from pca.var_explained. */
 import { loadBundle } from '../../shared/bundle.js';
 import { COL, INK, FONT } from '../../shared/palette.js';
-import { introHTML, anchorQuestionHTML } from '../../shared/intro-engine.js';
-import { sourceHTML, describesHTML, readingLines, helpContent } from '../../shared/context-engine.js';
+import { introHTML } from '../../shared/intro-engine.js';
+import { sourceHTML, describesHTML, readingLines, helpContent, infoContent } from '../../shared/context-engine.js';
 import { mountSceneFrame } from '../../shared/scene-frame.js';
 
-// Persistent driving question + "?" help panel — the SAME module, the SAME two
-// strings as the static condition (shared/scene-frame.js). Hidden until screen
-// 3; the question is already on view inside the intro panel before that.
+// On-figure "?" (how to read) + "i" (project/data) affordances, sitting by the
+// Current Month readout (bottom-left). SAME module and SAME content as the static
+// condition (shared/scene-frame.js), so framing stays symmetric. Hidden until
+// screen 3; the driving question is asked once on the intro, not repeated here.
 // (Named sceneFrame — `frame` is already this file's animation-frame counter.)
-const sceneFrame = mountSceneFrame();
+const sceneFrame = mountSceneFrame({ pos: { left: '155px', bottom: '66px' }, hasInfo: true });
 
 /* ============================== i18n ======================================
    Labels only — the toggle never touches a number. Language resolution:
@@ -356,6 +400,14 @@ en: {
   emph_on:     '&#10022; HIGHLIGHT ANOMALIES: ON',
   cloud_on:    '&#9702; Show temporal cloud: ON',
   cloud_off:   '&#9702; Show temporal cloud: OFF',
+  cloud_tip:   'The faint background points are the same ocean sampled more finely in time — a soft trace of the states it moved through.',
+  strip_cap:   'Each box is one month — years down the side, months across. They light up as time plays; warmer boxes mark more unusual months.',
+  enc_title:   'Colour &amp; motion',
+  enc_sub:     'How unusual each month was — flagged bottom-up by an anomaly detector.',
+  enc_typical: 'typical',
+  enc_unusual: 'unusual',
+  enc_steady:  'steady &middot; a typical month',
+  enc_shaky:   'shaky &middot; a more unusual month',
   ctr_tip:     'Central state',
   axis_pc1:    'PC1 · {v1}% OF VARIANCE',
   axis_pc2:    'PC2 · {v2}% OF VARIANCE',
@@ -379,6 +431,14 @@ it: {
   emph_on:     '&#10022; EVIDENZIA ANOMALIE: ON',
   cloud_on:    '&#9702; Mostra nuvola temporale: ON',
   cloud_off:   '&#9702; Mostra nuvola temporale: OFF',
+  cloud_tip:   'I punti tenui sullo sfondo sono lo stesso oceano campionato più fittamente nel tempo — una traccia sfumata degli stati attraversati.',
+  strip_cap:   'Ogni casella &egrave; un mese — gli anni sul lato, i mesi in orizzontale. Si accendono col passare del tempo; le caselle pi&ugrave; calde segnano i mesi pi&ugrave; insoliti.',
+  enc_title:   'Colore e movimento',
+  enc_sub:     'Quanto era insolito ogni mese — segnalato dal basso da un rilevatore di anomalie.',
+  enc_typical: 'tipico',
+  enc_unusual: 'insolito',
+  enc_steady:  'stabile &middot; un mese tipico',
+  enc_shaky:   'tremolante &middot; un mese pi&ugrave; insolito',
   ctr_tip:     'Stato centrale',
   axis_pc1:    'PC1 · {v1}% DELLA VARIANZA',
   axis_pc2:    'PC2 · {v2}% DELLA VARIANZA',
@@ -479,7 +539,7 @@ function computeFit(){
   const padX = (pxMax - pxMin) * 0.04, padY = (pyMax - pyMin) * 0.04;
   const x0 = pxMin - padX, x1 = pxMax + padX;
   const y0 = pyMin - padY, y1 = pyMax + padY;
-  const mL = 70, mR = 280, mT = 140, mB = 170;     // slightly larger scatter; right margin clears the timeline
+  const mL = 90, mR = 270, mT = 124, mB = 150;     // enlarged plot; still clears the left legend, right strip & timeline
   const side = Math.min(W - mL - mR, H - mT - mB); // square plotting region
   const sx = side / (x1 - x0);                     // per-axis scale (reference convention)
   const sy = side / (y1 - y0);
@@ -531,7 +591,7 @@ let stripHlCur = -1;
 function buildStrip(){
   const wrap = document.getElementById('anom-strip');
   const yA = +TRAJ.time[0].slice(0, 4), yB = +TRAJ.time[N - 1].slice(0, 4);
-  let html = '';
+  let html = '<div class="strip-cap" id="strip-cap"></div>';
   for (let yr = yA; yr <= yB; yr++){
     html += `<div class="strip-row"><span class="strip-year">${yr}</span>`;
     for (let m = 1; m <= 12; m++){
@@ -729,16 +789,21 @@ function draw(){
   // ONLY the months the IsolationForest flagged receive emphasis; all other
   // points stay untouched (the field itself is never highlighted).
   if (emphOn && anomIntensity){
-    g.lineWidth = 1.4;
     const pulse = 0.62 + 0.38 * Math.sin(frame * 0.045);
     for (let i = 0; i <= visited; i++){
       const lv = anomIntensity[i];
       if (!lv) continue;
-      g.strokeStyle = anomColor(0.8 + 0.2 * lv);   // warm accent, always
-      g.globalAlpha = (0.30 + 0.45 * lv) * pulse;
-      g.beginPath();
-      g.arc(SX(TRAJ.pc1[i]), SY(TRAJ.pc2[i]), 5.5, 0, Math.PI * 2);
-      g.stroke();
+      const x = SX(TRAJ.pc1[i]), y = SY(TRAJ.pc2[i]);
+      // A soft filled halo + a bold pulsing ring so flagged months are
+      // immediately recognizable (the old 1.4px ring was barely visible).
+      // Alpha still rides on level × pulse, so it reads without overwhelming.
+      g.fillStyle = anomColor(0.8 + 0.2 * lv);
+      g.globalAlpha = (0.12 + 0.16 * lv) * pulse;
+      g.beginPath(); g.arc(x, y, 12 + 3 * lv, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = anomColor(0.85 + 0.15 * lv);
+      g.lineWidth = 2.2;
+      g.globalAlpha = (0.55 + 0.4 * lv) * pulse;
+      g.beginPath(); g.arc(x, y, 8 + 2 * lv, 0, Math.PI * 2); g.stroke();
     }
     g.globalAlpha = 1;
   }
@@ -755,15 +820,18 @@ function draw(){
     const tk = tTail + (tFloat - tTail) * (k / STEPS);
     const [a, b] = posAt(tk);
     let x = SX(a), y = SY(b);
-    const tb = anomAt(tk);
-    if (tb > 0){                                   // rougher texture on the agitated stretch
-      x += Math.sin(tk * 47.13 + frame * 0.11) * tb * 6;
-      y += Math.cos(tk * 61.71 + frame * 0.13) * tb * 6;
+    const tb = anomAt(tk);                         // anomaly level at this point of the path
+    if (tb > 0){                                   // shake amplitude ∝ the real anomaly level
+      x += Math.sin(tk * 47.13 + frame * 0.11) * tb * 7;
+      y += Math.cos(tk * 61.71 + frame * 0.13) * tb * 7;
     }
     if (prev){
       const f = k / STEPS;                         // 0 = tail, 1 = head
-      g.strokeStyle = COL.beacon;
-      g.globalAlpha = Math.pow(f, 1.4) * 0.7;
+      // COLOUR IS DATA-DRIVEN: the trail follows the same anomaly ramp as the
+      // points — cool blue where the months are typical, warming to orange/red
+      // where they are more unusual (was hard-coded beacon → always orange).
+      g.strokeStyle = anomColor(tb);
+      g.globalAlpha = Math.pow(f, 1.4) * 0.78;
       g.lineWidth = 0.8 + 2.2 * f;
       g.beginPath(); g.moveTo(prev[0], prev[1]); g.lineTo(x, y); g.stroke();
     }
@@ -973,15 +1041,20 @@ window.addEventListener('mousemove', e => {
 });
 
 /* Landing bokeh — the same animated identity as Scene I's landing screen. */
-const bokehCv = document.getElementById('bokeh');
-const bg = bokehCv.getContext('2d');
+// Shown on BOTH the landing screen and the intro screen (screen 2): one set of
+// spots advanced each frame, painted onto whichever canvas is currently visible.
+const bokehCanvases = ['bokeh', 'intro-bokeh']
+  .map(id => document.getElementById(id)).filter(Boolean)
+  .map(cv => ({ cv, g: cv.getContext('2d') }));
 let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
 function resizeBokeh(){
   const dpr = window.devicePixelRatio || 1;
   bokehW = innerWidth; bokehH = innerHeight;
-  bokehCv.width = Math.round(bokehW * dpr); bokehCv.height = Math.round(bokehH * dpr);
-  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
-  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (const { cv, g } of bokehCanvases){
+    cv.width = Math.round(bokehW * dpr); cv.height = Math.round(bokehH * dpr);
+    cv.style.width = bokehW + 'px'; cv.style.height = bokehH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
   if (!bokehSpots.length) seedBokeh();
 }
 function seedBokeh(){
@@ -996,20 +1069,25 @@ function seedBokeh(){
 }
 function drawBokeh(){
   if (!bokehOn) return;
-  bg.clearRect(0, 0, bokehW, bokehH);
-  bg.globalCompositeOperation = 'lighter';
-  for (const sp of bokehSpots){
+  for (const sp of bokehSpots){                          // advance the spots once
     sp.x += sp.vx; sp.y += sp.vy;
     if (sp.y + sp.r < 0)       sp.y = bokehH + sp.r;
     if (sp.x < -sp.r)          sp.x = bokehW + sp.r;
     if (sp.x > bokehW + sp.r)  sp.x = -sp.r;
-    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
-    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
-    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
-    bg.fillStyle = grd;
-    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); bg.fill();
   }
-  bg.globalCompositeOperation = 'source-over';
+  for (const { cv, g } of bokehCanvases){                // paint every VISIBLE canvas
+    if (cv.offsetParent === null) continue;              // skip hidden screens
+    g.clearRect(0, 0, bokehW, bokehH);
+    g.globalCompositeOperation = 'lighter';
+    for (const sp of bokehSpots){
+      const grd = g.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+      grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+      grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
   requestAnimationFrame(drawBokeh);
 }
 
@@ -1019,7 +1097,7 @@ document.getElementById('splash').addEventListener('click', () => {
   const s = document.getElementById('splash');
   s.style.opacity = '0';
   s.style.pointerEvents = 'none';
-  setTimeout(() => { s.style.display = 'none'; bokehOn = false; }, 1300);
+  setTimeout(() => { s.style.display = 'none'; }, 1300);   // hide splash; bokeh keeps drifting on the intro screen
   const scr = document.getElementById('intro-screen');
   scr.querySelector('.panel').innerHTML = introHTML(lang);
   scr.style.display = 'flex';
@@ -1031,6 +1109,7 @@ document.getElementById('intro-screen').addEventListener('click', e => {
 });
 function startVisualization(){
   document.body.classList.remove('pre-start');
+  bokehOn = false;                                  // stop the bokeh once the visualization is shown
   document.getElementById('controls').style.display = 'flex';
   document.getElementById('readouts').style.display = 'block';
   document.getElementById('time-wrap').style.visibility = 'visible';
@@ -1056,6 +1135,23 @@ function applyLang(l){
   document.getElementById('load-error').innerHTML   = T('load_error');
   document.getElementById('anom-toggle').innerHTML  = T(emphOn ? 'emph_on' : 'emph_off');
   document.getElementById('cloud-toggle').innerHTML = T(cloudShow ? 'cloud_on' : 'cloud_off');
+  document.getElementById('cloud-toggle').title = T('cloud_tip');
+  // Left encoding legend: what the point colour + path shakiness mean (encoding
+  // only, never the reading). A live vibrating sample sits inside it.
+  document.getElementById('encode-legend').innerHTML =
+    '<div class="el-title">' + T('enc_title') + '</div>' +
+    '<div class="el-sub">' + T('enc_sub') + '</div>' +
+    '<div class="el-ramp"></div>' +
+    '<div class="el-scale"><span>' + T('enc_typical') + '</span><span>' + T('enc_unusual') + '</span></div>' +
+    '<div class="el-row"><span class="el-dot" style="background:#7fb4d9"></span><span>' + T('enc_steady') + '</span></div>' +
+    '<div class="el-row"><span class="el-dot shaky" style="background:#c65747"></span><span>' + T('enc_shaky') + '</span></div>' +
+    // live motion sample: one line, flat+cool on the left → shaky+warm on the right.
+    // (No caption here — the typical/unusual scale under the colour ramp already
+    // labels the same axis; a second copy would be duplicated text.)
+    '<canvas class="el-motion" width="240" height="34"></canvas>';
+  // Caption above the illuminating boxes (present once the strip is built).
+  const stripCap = document.getElementById('strip-cap');
+  if (stripCap) stripCap.innerHTML = T('strip_cap');
   // Shared context (shared/context-engine.js) — imported verbatim by both
   // conditions; {n}/{y0}/{y1}/{v1}/{v2} filled from the bundle, never typed.
   document.getElementById('source').innerHTML = sourceHTML(l);
@@ -1074,7 +1170,7 @@ function applyLang(l){
     introScr.querySelector('.panel').innerHTML = introHTML(l);
   // Persistent question + "?" help — both strings come from the shared modules,
   // so both are byte-identical to the static condition.
-  sceneFrame.render(l, anchorQuestionHTML(l), helpContent(l));
+  sceneFrame.render(l, { help: helpContent(l), info: infoContent(l) });
   setPlaying(playing);
   refreshSoundBtn();
 }
@@ -1126,6 +1222,34 @@ async function boot(){
   requestAnimationFrame(draw);
 }
 boot();
+
+/* Live motion sample inside the Colour & Motion legend: a single line that is
+   cool & flat on the left and warms & shakes toward the right — the SAME
+   colour(anomColor) → shake mapping the trail uses, so it is data-grounded, not
+   decorative. Redraws the current canvas each frame (survives language rebuilds). */
+function drawMotionSample(){
+  const cv = document.querySelector('#encode-legend .el-motion');
+  if (cv){
+    const c = cv.getContext('2d');
+    const W = cv.width, H = cv.height, mid = H / 2;
+    c.clearRect(0, 0, W, H);
+    c.lineWidth = 2.2; c.lineCap = 'round';
+    const t = performance.now() * 0.004, seg = 64;
+    let py = mid;
+    for (let i = 0; i <= seg; i++){
+      const f = i / seg;
+      const amp = f * f * (H * 0.42);                 // flat at the left, growing to the right
+      const y = mid + Math.sin(f * 22 + t) * amp;
+      if (i > 0){
+        c.strokeStyle = anomColor(f);                 // cool blue → warm, exactly like the trail
+        c.beginPath(); c.moveTo((i - 1) / seg * W, py); c.lineTo(f * W, y); c.stroke();
+      }
+      py = y;
+    }
+  }
+  requestAnimationFrame(drawMotionSample);
+}
+drawMotionSample();
 </script>
 </body>
 </html>

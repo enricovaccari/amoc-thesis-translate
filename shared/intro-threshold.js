@@ -28,7 +28,8 @@
 
 export const INTRO = {
   en: {
-    title: 'The Threshold — the same ocean, told three times',
+    title: 'The Threshold',
+    subtitle: 'The same ocean, told three times',
     paragraphs: [
       'Scenes I and II showed the Atlantic circulation as it was measured ' +
       'directly, with instruments moored in the water. This scene shows the ' +
@@ -39,13 +40,14 @@ export const INTRO = {
       'scene shows all three at once.',
     ],
     anchorQuestion:
-      'Do you think how much the models agree with each other has stayed the ' +
-      'same across all the years, or has it changed?',
+      'Do you expect the three models to remain equally similar over time, or ' +
+      'to become more or less similar during some periods?',
     anchorHold: 'Hold your answer in mind.',
     button: 'Show me the three estimates',
   },
   it: {
-    title: 'La Soglia — lo stesso oceano, raccontato tre volte',
+    title: 'La Soglia',
+    subtitle: 'Lo stesso oceano, raccontato tre volte',
     paragraphs: [
       'Le Scene I e II mostravano la circolazione atlantica com’è stata ' +
       'misurata direttamente, con strumenti ancorati nell’acqua. Questa ' +
@@ -56,20 +58,28 @@ export const INTRO = {
       'oceano: questa scena le mostra tutte e tre insieme.',
     ],
     anchorQuestion:
-      'Pensi che quanto i modelli sono d’accordo tra loro sia rimasto uguale ' +
-      'in tutti gli anni, oppure sia cambiato?',
+      'Ti aspetti che i tre modelli restino ugualmente simili nel tempo, ' +
+      'oppure che diventino più o meno simili in certi periodi?',
     anchorHold: 'Tieni a mente la tua risposta.',
     button: 'Mostrami le tre stime',
   },
 };
 
-/** Render the intro as HTML. Both conditions call this with the same lang. */
+/**
+ * Render the intro as HTML. Both conditions call this with the same lang.
+ * Short TITLE centred, SUBTITLE directly under it (smaller italic serif), body
+ * copy + question LEFT-ALIGNED. Inline styles override each file's own
+ * #intro/#intro-screen CSS so the three conditions stay consistent by
+ * construction (see intro-column.js for the rationale).
+ */
 export function introHTML(lang = 'en') {
   const t = INTRO[lang] || INTRO.en;
   return (
-    `<h2>${t.title}</h2>` +
-    t.paragraphs.map((p) => `<p>${p}</p>`).join('') +
-    `<p class="anchor-question">${t.anchorQuestion}` +
+    `<h2 style="margin:0 0 9px">${t.title}</h2>` +
+    `<div class="intro-subtitle" style="font-family:Georgia,'Times New Roman',serif;` +
+      `font-style:italic;font-size:14px;letter-spacing:2px;opacity:.62;margin:0 0 30px">${t.subtitle}</div>` +
+    t.paragraphs.map((p) => `<p style="text-align:left">${p}</p>`).join('') +
+    `<p class="anchor-question" style="text-align:left">${t.anchorQuestion}` +
       `<span style="display:block;margin-top:14px;font-size:11px;opacity:.55">${t.anchorHold}</span></p>` +
     `<button id="intro-continue" type="button">${t.button}</button>`
   );

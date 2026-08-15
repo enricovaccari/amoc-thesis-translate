@@ -92,10 +92,10 @@ button{cursor:none}
 #cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
   transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s}
 
-/* Ownership credit — visible on every screen; centred, lifted off the
-   bottom edge, clear of every other UI element */
-#credit{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:55;pointer-events:none;
-  font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink,#e7f0f7);opacity:.4}
+/* === AUTHOR ATTRIBUTION === bottom-left, comfortable padding from both edges;
+   identical placement across all three static scenes. */
+#credit{position:fixed;bottom:22px;left:40px;z-index:55;pointer-events:none;
+  font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink,#e7f0f7);opacity:.35}
 
 header{position:absolute;top:34px;left:40px;z-index:10}
 header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size:28px;
@@ -104,8 +104,10 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
 /* shared context: plain-language description + data provenance — ONE visual
    group, centred over the composition; the language switch top edge aligns
    with this block. */
+/* Hidden until the figure screen — the same information is on the plot screen,
+   so it must not also sit over the intro (§10). */
 #context-center{position:fixed;top:34px;left:50%;transform:translateX(-50%);
-  width:min(560px,72vw);text-align:center;z-index:10;pointer-events:none}
+  width:min(560px,72vw);text-align:center;z-index:10;pointer-events:none;display:none}
 #describes{font-size:11px;line-height:1.75;color:var(--ink-soft,rgba(231,240,247,.55));letter-spacing:.4px}
 #source{margin-top:8px;font-size:8.5px;letter-spacing:1.2px;color:var(--ink-soft,rgba(231,240,247,.55));opacity:.8}
 
@@ -135,7 +137,9 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
 
 /* --- Screen 2: shared intro (identical in both conditions) --- */
 #intro{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:20}
-#intro .panel{max-width:560px;padding:0 32px;text-align:center}
+/* same subtle floating bokeh as the landing screen, behind the intro panel */
+#intro-bokeh{position:absolute;inset:0;z-index:0;display:block}
+#intro .panel{position:relative;z-index:1;max-width:560px;padding:0 32px;text-align:center}
 #intro h2{font-family:var(--font-serif,serif);font-weight:400;font-size:24px;
   letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
 #intro p{font-size:13px;line-height:1.9;color:var(--ink-soft,rgba(231,240,247,.55));margin:0 0 18px}
@@ -180,7 +184,7 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
   <div class="splash-cta" id="splash-cta"></div>
 </div>
 
-<div id="intro"><div class="panel" id="intro-panel"></div></div>
+<div id="intro"><canvas id="intro-bokeh"></canvas><div class="panel" id="intro-panel"></div></div>
 <div id="figure"></div>
 <div id="load-error"></div>
 
@@ -191,14 +195,15 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
 <script type="module">
 import { loadBundle } from '../../shared/bundle.js';
 import { COL, INK, FONT } from '../../shared/palette.js';
-import { introHTML, anchorQuestionHTML } from '../../shared/intro-threshold.js';
-import { sourceHTML, describesHTML, readingLines, helpContent } from '../../shared/context-threshold.js';
+import { introHTML } from '../../shared/intro-threshold.js';
+import { sourceHTML, describesHTML, readingLines, helpContent, infoContent } from '../../shared/context-threshold.js';
 import { mountSceneFrame } from '../../shared/scene-frame.js';
 
-// Persistent driving question + "?" help panel — the SAME module, the SAME two
-// strings as the experiential condition (shared/scene-frame.js). Hidden until
-// screen 3; the question is already on view inside the intro panel before that.
-const frame = mountSceneFrame();
+// On-figure "?" (how to read) + "i" (project/data) affordances — the SAME module
+// and the SAME content as the experiential condition (shared/scene-frame.js), so
+// framing stays symmetric. Sits under the language toggle; hidden until screen 3.
+// (The driving question is asked once on the intro screen, not repeated here.)
+const frame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
 
 // Palette → CSS custom properties (single source of truth for scaffolding).
 const rootStyle = document.documentElement.style;
@@ -254,24 +259,16 @@ function T(key, vars){
   return s;
 }
 
-/* ------------------------------------------- the three member tints --------
-   Three tints of the existing palette blues, taken as positions on the SAME
-   perceptually ordered ramp every scene uses (deep → north → northHi from
-   shared/palette.js). Not new signal colours; no red/green. The IDENTICAL
-   three constants drive the strands in the experiential file — one visual
-   vocabulary, two idioms. Assignment is fixed and neutral: cglo / glor /
-   oras in bundle member order. */
-const hexRgb = (h) => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
-const RAMP = [hexRgb(COL.deep), hexRgb(COL.north), hexRgb(COL.northHi)];
-function rampColor(t){                            // t ∈ [0,1] on the shared blue ramp
-  const seg = t <= 0.5 ? [RAMP[0], RAMP[1], t * 2] : [RAMP[1], RAMP[2], (t - 0.5) * 2];
-  const c = seg[0].map((v, i) => Math.round(v + (seg[1][i] - v) * seg[2]));
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
+/* ------------------------------------------- the three member colours ------
+   THREE PERCEPTUALLY DISTINCT palette hues (§10) — the old three blue tints
+   sat too close to read apart on the static plot. All are existing palette
+   constants (shared/palette.js), elegant and un-aggressive: a light ocean blue,
+   a teal, and a warm amber. No red/green. Assignment is fixed and neutral:
+   cglo / glor / oras in bundle member order. */
 const MEMBERS = [
-  { key: 'cglo', name: 'C-GLORS', color: rampColor(0.55) },
-  { key: 'glor', name: 'GLORYS',  color: rampColor(0.20) },
-  { key: 'oras', name: 'ORAS5',   color: rampColor(1.00) },
+  { key: 'cglo', name: 'C-GLORS', color: COL.north },      // light ocean blue
+  { key: 'glor', name: 'GLORYS',  color: COL.excursion },  // teal
+  { key: 'oras', name: 'ORAS5',   color: COL.beacon },     // warm amber
 ];
 
 function buildFigure(bundle){
@@ -363,9 +360,10 @@ function buildFigure(bundle){
   // caption, Scene-I style, then the shared reading floor
   // (shared/context-threshold.js — teaches the instrument; imported verbatim
   // by both conditions)
-  svg += `<text x="${M.left + plotW / 2}" y="${M.top + plotH + 74}" fill="${INK.inkSoft}" font-size="9" text-anchor="middle" letter-spacing="1.5">${T('caption_line')}</text>`;
+  svg += `<text x="${M.left}" y="${M.top + plotH + 74}" fill="${INK.inkSoft}" font-size="9" text-anchor="start" letter-spacing="1.5">${T('caption_line')}</text>`;
+  // reading floor — LEFT-ALIGNED within its block, slightly larger (§10)
   readingLines(lang, { y0: y0lab, y1: y1lab }).forEach((line, li) => {
-    svg += `<text x="${M.left + plotW / 2}" y="${M.top + plotH + 96 + li * 16}" fill="${INK.inkSoft}" font-size="8.5" text-anchor="middle" letter-spacing="1" opacity="0.85">${line}</text>`;
+    svg += `<text x="${M.left}" y="${M.top + plotH + 96 + li * 16}" fill="${INK.inkSoft}" font-size="9.5" text-anchor="start" letter-spacing="1" opacity="0.85">${line}</text>`;
   });
 
   svg += `</svg>`;
@@ -398,9 +396,9 @@ function applyLang(l){
   }
   // Screen 2 — imported verbatim; byte-identical to the experiential condition.
   document.getElementById('intro-panel').innerHTML = introHTML(l);
-  // Persistent question + "?" help — both strings come from the shared modules,
-  // so both are byte-identical to the experiential condition.
-  frame.render(l, anchorQuestionHTML(l), helpContent(l));
+  // "?" help + "i" info — both from the shared modules, byte-identical to the
+  // experiential condition.
+  frame.render(l, { help: helpContent(l), info: infoContent(l) });
   if (bundleRef) buildFigure(bundleRef);             // re-label; numbers unchanged
 }
 // (No interactive controls in the static condition: the only switch is the
@@ -419,15 +417,20 @@ window.addEventListener('mousemove', (e) => moveCursor(e.clientX, e.clientY));
 // Landing bokeh — the same animated identity as the experiential file's
 // landing screen: soft, blurred, drifting light spots. Purely decorative
 // (non-informational); it stops the moment the splash is dismissed.
-const bokehCv = document.getElementById('bokeh');
-const bg = bokehCv.getContext('2d');
+// Shown on BOTH the landing screen and the intro screen (screen 2): one set of
+// spots advanced each frame, painted onto whichever canvas is currently visible.
+const bokehCanvases = ['bokeh', 'intro-bokeh']
+  .map(id => document.getElementById(id)).filter(Boolean)
+  .map(cv => ({ cv, g: cv.getContext('2d') }));
 let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
 function resizeBokeh(){
   const dpr = window.devicePixelRatio || 1;
   bokehW = innerWidth; bokehH = innerHeight;
-  bokehCv.width = Math.round(bokehW*dpr); bokehCv.height = Math.round(bokehH*dpr);
-  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
-  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (const { cv, g } of bokehCanvases){
+    cv.width = Math.round(bokehW*dpr); cv.height = Math.round(bokehH*dpr);
+    cv.style.width = bokehW + 'px'; cv.style.height = bokehH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
   if (!bokehSpots.length) seedBokeh();
 }
 function seedBokeh(){
@@ -442,20 +445,25 @@ function seedBokeh(){
 }
 function drawBokeh(){
   if (!bokehOn) return;
-  bg.clearRect(0, 0, bokehW, bokehH);
-  bg.globalCompositeOperation = 'lighter';
-  for (const sp of bokehSpots){
+  for (const sp of bokehSpots){                         // advance the spots once
     sp.x += sp.vx; sp.y += sp.vy;
     if (sp.y + sp.r < 0)      sp.y = bokehH + sp.r;
     if (sp.x < -sp.r)         sp.x = bokehW + sp.r;
     if (sp.x > bokehW + sp.r) sp.x = -sp.r;
-    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
-    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
-    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
-    bg.fillStyle = grd;
-    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI*2); bg.fill();
   }
-  bg.globalCompositeOperation = 'source-over';
+  for (const { cv, g } of bokehCanvases){                // paint every VISIBLE canvas
+    if (cv.offsetParent === null) continue;              // skip hidden screens
+    g.clearRect(0, 0, bokehW, bokehH);
+    g.globalCompositeOperation = 'lighter';
+    for (const sp of bokehSpots){
+      const grd = g.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+      grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+      grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(sp.x, sp.y, sp.r, 0, Math.PI*2); g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
   requestAnimationFrame(drawBokeh);
 }
 window.addEventListener('resize', resizeBokeh);
@@ -467,7 +475,7 @@ document.getElementById('splash').addEventListener('click', () => {
   const sp = document.getElementById('splash');
   sp.style.opacity = '0';
   sp.style.pointerEvents = 'none';
-  setTimeout(() => { sp.style.display = 'none'; bokehOn = false; }, 1000);  // stop the intro layer
+  setTimeout(() => { sp.style.display = 'none'; }, 1000);  // hide splash; bokeh keeps drifting on the intro screen
   document.getElementById('intro').style.display = 'flex';
 }, { once: true });
 
@@ -476,6 +484,9 @@ document.getElementById('intro-panel').addEventListener('click', (e) => {
   if (e.target.id !== 'intro-continue') return;
   document.getElementById('intro').style.display = 'none';
   document.getElementById('figure').style.display = 'flex';
+  bokehOn = false;                                   // stop the bokeh once the figure is shown
+  // reveal the describes/source header only now (not over the intro screen)
+  document.getElementById('context-center').style.display = 'block';
   frame.show(true);                                  // the question stays for the whole scene
 });
 document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));

@@ -22,7 +22,7 @@
 export const CONTEXT = {
   en: {
     // Data provenance — anchors C1 as the canonical scientific idiom.
-    source: 'RAPID-MOCHA ARRAY, 26.5&deg;N &middot; 2004&ndash;2024 &middot; MOAT ET AL. (2026) &middot; DOI 10.5285/7086abc062f1',
+    source: 'RAPID-MOCHA ARRAY, 26.5&deg;N &middot; 2004&ndash;2024 &middot; MOAT ET AL. (2026)<br>DOI 10.5285/7086abc062f1',
     // One descriptive line, plain language, NO interpretation.
     describes: 'The average amount of water moving across the Atlantic at 26.5&deg;N, ' +
                'measured at every depth between 2004 and 2024.',
@@ -45,9 +45,19 @@ export const CONTEXT = {
       'Across the picture is how much water is moving at that depth.',
       'Look at what the water is doing at each depth, from the top of the column to the bottom.',
     ],
+    // The "i" panel: general project + data context, non-leading. No machine
+    // learning, no interaction specifics, no answer — safe and identical in
+    // every condition (static, experiential, TOT).
+    infoTitle: 'About this visualization',
+    infoLines: [
+      'A research visualization from an MSc thesis at Tomorrow University &mdash; the &ldquo;Living Atlantic&rdquo; project.',
+      'It shows the Atlantic overturning circulation at 26.5&deg;N &mdash; how much water moves at each depth &mdash; from the RAPID-MOCHA mooring array, 2004&ndash;2024 (Moat et al., 2026).',
+      'The horizontal axis is transport in Sverdrup (1 Sv = 10&#8310; m&#179;/s &asymp; the combined flow of all the world&rsquo;s rivers); the vertical axis is depth, with the surface at the top.',
+      'Nothing here tells you what to conclude &mdash; look at the profile and form your own reading.',
+    ],
   },
   it: {
-    source: 'RETE RAPID-MOCHA, 26.5&deg;N &middot; 2004&ndash;2024 &middot; MOAT ET AL. (2026) &middot; DOI 10.5285/7086abc062f1',
+    source: 'RETE RAPID-MOCHA, 26.5&deg;N &middot; 2004&ndash;2024 &middot; MOAT ET AL. (2026)<br>DOI 10.5285/7086abc062f1',
     describes: 'La quantità media di acqua che si muove attraverso l&rsquo;Atlantico a 26.5&deg;N, ' +
                'misurata a ogni profondità tra il 2004 e il 2024.',
     sverdrupLines: [
@@ -60,6 +70,13 @@ export const CONTEXT = {
       'In alto c&rsquo;&egrave; la superficie dell&rsquo;oceano. In basso l&rsquo;oceano profondo, quasi sei chilometri pi&ugrave; gi&ugrave;.',
       'Attraverso l&rsquo;immagine c&rsquo;&egrave; quanta acqua si sta muovendo a quella profondit&agrave;.',
       'Guarda che cosa fa l&rsquo;acqua a ogni profondit&agrave;, dalla cima della colonna fino al fondo.',
+    ],
+    infoTitle: 'Informazioni sulla visualizzazione',
+    infoLines: [
+      'Una visualizzazione di ricerca da una tesi magistrale alla Tomorrow University &mdash; il progetto &ldquo;Living Atlantic&rdquo;.',
+      'Mostra la circolazione di ribaltamento dell&rsquo;Atlantico a 26.5&deg;N &mdash; quanta acqua si muove a ogni profondit&agrave; &mdash; dalla rete di ormeggi RAPID-MOCHA, 2004&ndash;2024 (Moat et al., 2026).',
+      'L&rsquo;asse orizzontale &egrave; il trasporto in Sverdrup (1 Sv = 10&#8310; m&#179;/s &asymp; la portata di tutti i fiumi del mondo messi insieme); l&rsquo;asse verticale &egrave; la profondit&agrave;, con la superficie in alto.',
+      'Niente qui ti dice cosa concludere &mdash; osserva il profilo e formati la tua lettura.',
     ],
   },
 };
@@ -88,4 +105,14 @@ export function sverdrupHTML(lang = 'en') {
 export function helpContent(lang = 'en') {
   const c = ctx(lang);
   return { title: c.helpTitle, lines: c.helpLines };
+}
+
+/**
+ * The "i" info panel's content — { title, lines } — for shared/scene-frame.js.
+ * General project + data context only; imported verbatim by every condition, so
+ * it is byte-identical across static, experiential and TOT.
+ */
+export function infoContent(lang = 'en') {
+  const c = ctx(lang);
+  return { title: c.infoTitle, lines: c.infoLines };
 }

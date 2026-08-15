@@ -111,8 +111,10 @@ header{position:absolute;top:50px;left:50px}
 header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:28px;letter-spacing:12px;text-transform:uppercase}
 .scene-label{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:5px;opacity:.5;margin-top:10px}
 
-#hover-hint{position:absolute;top:100px;left:50%;transform:translateX(-50%);max-width:640px;text-align:center;
-  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+/* Nudged lower (§7), clear of the header/context row; keeps its gentle breathing.
+   nowrap + a smaller size so the full instruction stays on ONE line (EN & IT). */
+#hover-hint{position:absolute;top:134px;left:50%;transform:translateX(-50%);max-width:none;white-space:nowrap;text-align:center;
+  font-size:9px;letter-spacing:1.4px;text-transform:uppercase;
   animation:hint-breathe 5.2s ease-in-out infinite}
 @keyframes hint-breathe{0%,100%{opacity:.28}50%{opacity:.52}}
 
@@ -122,7 +124,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
 #lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
 
-#context-top{position:absolute;top:36px;left:50%;transform:translateX(-50%);
+#context-top{position:absolute;top:28px;left:50%;transform:translateX(-50%);
   width:min(560px,72vw);text-align:center;pointer-events:none}
 #context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
   color:var(--ink-soft);letter-spacing:.4px}
@@ -132,9 +134,23 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* === D. READING FLOOR (bottom-right — shared/context-threshold.js) === */
 .rail-box{background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:12px 14px;
   font-size:10.5px;line-height:1.65}
-#reading-box{position:absolute;right:70px;bottom:60px;width:max-content;max-width:min(420px,28vw);
+#reading-box{position:absolute;right:70px;bottom:38px;width:max-content;max-width:min(420px,28vw);
   pointer-events:none}
 #reading-box .read-line{margin:5px 0;letter-spacing:.4px;font-size:9.5px;line-height:1.5;color:var(--ink-soft)}
+/* Compact encoding legend appended to the reading floor (§8): which line is
+   which model, and what the glowing band means. Explains the encoding only. */
+#reading-box .rb-legend{margin-top:10px;padding-top:9px;border-top:1px solid rgba(255,255,255,.12)}
+#reading-box .rb-lrow{display:flex;align-items:center;gap:9px;margin:5px 0;font-size:9px;
+  letter-spacing:.5px;color:var(--ink-soft)}
+#reading-box .rb-lline{width:22px;height:0;border-top:2.5px solid;flex:0 0 auto}
+#reading-box .rb-glowtitle{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--beacon);margin-bottom:6px}
+#reading-box .rb-glowcap{margin-top:8px;font-size:9px;line-height:1.5;color:var(--ink-soft)}
+/* Visual sample of the band fill: cool where the lines are close, warm where far. */
+#reading-box .rb-glowbar{display:block;height:12px;border-radius:2px;margin:2px 0 3px;
+  background:linear-gradient(90deg,rgba(127,180,217,.5),rgba(73,184,165,.5) 45%,rgba(255,179,92,.62))}
+#reading-box .rb-glowscale{display:flex;justify-content:space-between;font-size:8px;
+  letter-spacing:.5px;color:var(--ink-soft);opacity:.9}
 
 /* === E. CONTROLS (bottom-left) — Scene-I/II control styling.
        Every control operational in wording only. === */
@@ -160,7 +176,8 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 #sound-toggle.on{border-color:rgba(255,179,92,.6);color:var(--beacon)}
 
 /* === F. MONTH + THREE-VALUE READOUT (bottom-left) === */
-#readouts{position:absolute;left:40px;bottom:24px;font-family:ui-monospace,monospace;display:none}
+/* raised so the author credit can sit under it in the same left column (§9) */
+#readouts{position:absolute;left:40px;bottom:44px;font-family:ui-monospace,monospace;display:none}
 .ro-item{position:relative;display:flex;flex-direction:column;align-items:flex-start}
 .ro-label{font-size:11px;letter-spacing:1px;white-space:nowrap;margin:0;padding:0}
 .ro-item .big{font-size:26px;color:var(--beacon);font-weight:bold;margin:6px 0 0;padding:0;line-height:1}
@@ -197,9 +214,13 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 
 #load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
 
-#credit{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:55;pointer-events:none;
-  font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;
-  text-transform:uppercase;color:var(--ink);opacity:.4}
+/* Ownership credit — directly under the scene label, upper-left. Shown ONLY on
+   the visualization screen, at the SAME position as the other experiential
+   scenes (top:112/left:50). */
+#credit{position:fixed;top:112px;left:50px;z-index:55;pointer-events:none;
+  font-family:ui-monospace,monospace;font-size:8px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--ink);opacity:.35}
+body.pre-start #credit{display:none}
 
 #splash{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%);
@@ -217,7 +238,9 @@ body.pre-start #ui{opacity:0}
 
 #intro-screen{position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
   text-align:center;background:radial-gradient(120% 120% at 50% 35%, #0a2136 0%, #061524 45%, #010811 100%)}
-#intro-screen .panel{max-width:560px;padding:0 32px}
+/* same subtle floating bokeh as the landing screen, behind the intro panel */
+#intro-bokeh{position:absolute;inset:0;z-index:0;display:block}
+#intro-screen .panel{position:relative;z-index:1;max-width:560px;padding:0 32px}
 #intro-screen h2{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;
   letter-spacing:6px;text-transform:uppercase;line-height:1.5;margin:0 0 28px}
 #intro-screen p{font-size:13px;line-height:1.9;color:var(--ink-soft);margin:0 0 18px}
@@ -243,7 +266,7 @@ body.pre-start #ui{opacity:0}
   <div class="splash-click" id="splash-click">Click anywhere to start exploring</div>
 </div>
 
-<div id="intro-screen"><div class="panel" id="intro-screen-panel"></div></div>
+<div id="intro-screen"><canvas id="intro-bokeh"></canvas><div class="panel" id="intro-screen-panel"></div></div>
 
 <div id="lang-toggle">
   <button id="lang-en" class="active">EN</button>
@@ -346,15 +369,16 @@ body.pre-start #ui{opacity:0}
      min–max normalised over the record. Never invented, never printed. */
 import { loadBundle } from '../../shared/bundle.js';
 import { COL, INK, FONT } from '../../shared/palette.js';
-import { introHTML, anchorQuestionHTML } from '../../shared/intro-threshold.js';
-import { sourceHTML, describesHTML, readingLines, helpContent } from '../../shared/context-threshold.js';
+import { introHTML } from '../../shared/intro-threshold.js';
+import { sourceHTML, describesHTML, readingLines, helpContent, infoContent } from '../../shared/context-threshold.js';
 import { mountSceneFrame } from '../../shared/scene-frame.js';
 
-// Persistent driving question + "?" help panel — the SAME module, the SAME two
-// strings as the static condition (shared/scene-frame.js). Hidden until screen
-// 3; the question is already on view inside the intro panel before that.
+// On-figure "?" (how to read) + "i" (project/data) affordances, sitting by the
+// Current Month readout (bottom-left). SAME module and SAME content as the static
+// condition (shared/scene-frame.js), so framing stays symmetric. Hidden until
+// screen 3; the driving question is asked once on the intro, not repeated here.
 // (Named sceneFrame — `frame` is already this file's animation-frame counter.)
-const sceneFrame = mountSceneFrame();
+const sceneFrame = mountSceneFrame({ pos: { left: '155px', bottom: '88px' }, hasInfo: true });
 
 const STR = {
 en: {
@@ -364,6 +388,11 @@ en: {
   scene_label: 'SCENE III &mdash; THE THRESHOLD &middot; EXPERIENTIAL',
   hover_hint:  'HOVER ANY MOMENT TO READ THE THREE ESTIMATES &middot; DRAG THE SLIDER TO WALK TIME &middot; PAUSE ANYWHERE TO HOLD A MOMENT',
   month_label: 'CURRENT MONTH',
+  leg_lines:   'The three lines',
+  leg_fill_title: 'The filled band',
+  leg_fill_near:  'close',
+  leg_fill_far:   'far apart',
+  leg_glow:    'The colour fills the space the three lines span.',
   speed:       'SPEED',
   view:        'VIEW',
   window:      'WINDOW',
@@ -389,6 +418,11 @@ it: {
   scene_label: 'SCENA III &mdash; LA SOGLIA &middot; ESPERIENZIALE',
   hover_hint:  'PASSA IL CURSORE SU UN MOMENTO PER LE TRE STIME &middot; TRASCINA IL CURSORE PER PERCORRERE IL TEMPO &middot; METTI IN PAUSA PER FERMARE UN MOMENTO',
   month_label: 'MESE CORRENTE',
+  leg_lines:   'Le tre linee',
+  leg_fill_title: 'La banda colorata',
+  leg_fill_near:  'vicine',
+  leg_fill_far:   'lontane',
+  leg_glow:    'Il colore riempie lo spazio che le tre linee occupano.',
   speed:       'VELOCIT&Agrave;',
   view:        'VISTA',
   window:      'FINESTRA',
@@ -845,15 +879,20 @@ window.addEventListener('mousemove', e => {
   moveCursor(e.clientX, e.clientY);
 });
 
-const bokehCv = document.getElementById('bokeh');
-const bg = bokehCv.getContext('2d');
+// Shown on BOTH the landing screen and the intro screen (screen 2): one set of
+// spots advanced each frame, painted onto whichever canvas is currently visible.
+const bokehCanvases = ['bokeh', 'intro-bokeh']
+  .map(id => document.getElementById(id)).filter(Boolean)
+  .map(cv => ({ cv, g: cv.getContext('2d') }));
 let bokehSpots = [], bokehOn = true, bokehW = 0, bokehH = 0;
 function resizeBokeh(){
   const dpr = window.devicePixelRatio || 1;
   bokehW = innerWidth; bokehH = innerHeight;
-  bokehCv.width = Math.round(bokehW * dpr); bokehCv.height = Math.round(bokehH * dpr);
-  bokehCv.style.width = bokehW + 'px'; bokehCv.style.height = bokehH + 'px';
-  bg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (const { cv, g } of bokehCanvases){
+    cv.width = Math.round(bokehW * dpr); cv.height = Math.round(bokehH * dpr);
+    cv.style.width = bokehW + 'px'; cv.style.height = bokehH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
   if (!bokehSpots.length) seedBokeh();
 }
 function seedBokeh(){
@@ -868,27 +907,32 @@ function seedBokeh(){
 }
 function drawBokeh(){
   if (!bokehOn) return;
-  bg.clearRect(0, 0, bokehW, bokehH);
-  bg.globalCompositeOperation = 'lighter';
-  for (const sp of bokehSpots){
+  for (const sp of bokehSpots){                          // advance the spots once
     sp.x += sp.vx; sp.y += sp.vy;
     if (sp.y + sp.r < 0)       sp.y = bokehH + sp.r;
     if (sp.x < -sp.r)          sp.x = bokehW + sp.r;
     if (sp.x > bokehW + sp.r)  sp.x = -sp.r;
-    const grd = bg.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
-    grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
-    grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
-    bg.fillStyle = grd;
-    bg.beginPath(); bg.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); bg.fill();
   }
-  bg.globalCompositeOperation = 'source-over';
+  for (const { cv, g } of bokehCanvases){                // paint every VISIBLE canvas
+    if (cv.offsetParent === null) continue;              // skip hidden screens
+    g.clearRect(0, 0, bokehW, bokehH);
+    g.globalCompositeOperation = 'lighter';
+    for (const sp of bokehSpots){
+      const grd = g.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, sp.r);
+      grd.addColorStop(0, 'rgba(' + sp.hue + ',' + sp.a + ')');
+      grd.addColorStop(1, 'rgba(' + sp.hue + ',0)');
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2); g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
   requestAnimationFrame(drawBokeh);
 }
 
 document.getElementById('splash').addEventListener('click', () => {
   const s = document.getElementById('splash');
   s.style.opacity = '0'; s.style.pointerEvents = 'none';
-  setTimeout(() => { s.style.display = 'none'; bokehOn = false; }, 1300);
+  setTimeout(() => { s.style.display = 'none'; }, 1300);   // hide splash; bokeh keeps drifting on the intro screen
   const scr = document.getElementById('intro-screen');
   scr.querySelector('.panel').innerHTML = introHTML(lang);
   scr.style.display = 'flex';
@@ -900,6 +944,7 @@ document.getElementById('intro-screen').addEventListener('click', e => {
 });
 function startVisualization(){
   document.body.classList.remove('pre-start');
+  bokehOn = false;                                  // stop the bokeh once the visualization is shown
   document.getElementById('controls').style.display = 'flex';
   document.getElementById('readouts').style.display = 'block';
   document.getElementById('time-wrap').style.visibility = 'visible';
@@ -934,7 +979,16 @@ function applyLang(l){
     const y0 = ENS.time[0].slice(0, 4), y1 = ENS.time[N - 1].slice(0, 4);
     document.getElementById('describes').innerHTML = describesHTML(l, { n: N, y0, y1 });
     document.getElementById('reading-box').innerHTML =
-      readingLines(l, { y0, y1 }).map(x => '<div class="read-line">' + x + '</div>').join('');
+      readingLines(l, { y0, y1 }).map(x => '<div class="read-line">' + x + '</div>').join('') +
+      // encoding legend (§8): a clear VISUAL legend for the filled band — a
+      // cool→warm sample bar + the plain-language meaning. (Which line is which
+      // model is already shown by the colour-coded model buttons on the left.)
+      '<div class="rb-legend">' +
+        '<div class="rb-glowtitle">' + T('leg_fill_title') + '</div>' +
+        '<div class="rb-glowbar"></div>' +
+        '<div class="rb-glowscale"><span>' + T('leg_fill_near') + '</span><span>' + T('leg_fill_far') + '</span></div>' +
+        '<div class="rb-glowcap">' + T('leg_glow') + '</div>' +
+      '</div>';
     document.getElementById('time-start').textContent = fmtMonth(ENS.time[0]);
     document.getElementById('time-end').textContent   = fmtMonth(ENS.time[N - 1]);
     readoutLens = null;
@@ -944,7 +998,7 @@ function applyLang(l){
     introScr.querySelector('.panel').innerHTML = introHTML(l);
   // Persistent question + "?" help — both strings come from the shared modules,
   // so both are byte-identical to the static condition.
-  sceneFrame.render(l, anchorQuestionHTML(l), helpContent(l));
+  sceneFrame.render(l, { help: helpContent(l), info: infoContent(l) });
   setPlaying(playing);
   refreshSoundBtn();
 }
