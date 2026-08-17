@@ -139,6 +139,31 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
   pointer-events:none}
 #reading-box .read-line{margin:5px 0;letter-spacing:.4px;font-size:9.5px;line-height:1.5;color:var(--ink-soft)}
 
+/* Colour & Motion legend (ported from the experiential file) — left of the plot,
+   vertically centred on the scatter (top:calc(50% - 13px) matches the plot centre
+   at ~y347, because oy=160/side=375). Top/bottom padding rebalanced so the panel
+   box stays centred while the heading sits higher within it. Shown in C2/C3 only. */
+#encode-legend{position:absolute;left:36px;top:calc(50% - 13px);transform:translateY(-50%);
+  width:max-content;max-width:228px;pointer-events:none;display:none;
+  background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:8px 18px 20px}
+#encode-legend .el-title{font-family:ui-monospace,monospace;font-size:11.5px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--beacon);padding-bottom:11px;margin-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.12)}
+#encode-legend .el-sub{font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.55;
+  color:var(--ink-soft);margin-bottom:13px}
+#encode-legend .el-ramp{height:13px;border-radius:2px;margin:3px 0 4px;
+  background:linear-gradient(90deg,#7fb4d9 0%,#ffb35c 45%,#ff8a3d 72%,#c65747 100%)}
+#encode-legend .el-scale{display:flex;justify-content:space-between;font-family:ui-monospace,monospace;
+  font-size:10px;letter-spacing:.5px;color:var(--ink-soft);opacity:.9}
+#encode-legend .el-row{display:flex;align-items:center;gap:11px;margin-top:14px;
+  font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.45;color:var(--ink-soft)}
+#encode-legend .el-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto}
+#encode-legend .el-dot.shaky{animation:el-shake .55s linear infinite}
+#encode-legend .el-motion{display:block;width:100%;height:34px;margin:13px 0 4px}
+@keyframes el-shake{0%{transform:translate(0,0)}20%{transform:translate(1.6px,-1.1px)}
+  40%{transform:translate(-1.3px,1.4px)}60%{transform:translate(1.2px,1.2px)}
+  80%{transform:translate(-1.4px,-.8px)}100%{transform:translate(0,0)}}
+
 #controls{position:absolute;left:40px;bottom:122px;display:none;flex-direction:column;gap:8px;pointer-events:auto}
 .ctrl-group{display:flex;align-items:center;gap:10px}
 .ctrl-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;width:58px}
@@ -318,6 +343,9 @@ body.pre-start #ui{opacity:0}
 
   <div id="anom-strip"></div>
 
+  <!-- Colour & Motion legend (C2/C3 only) — encoding key, left of the plot. -->
+  <div id="encode-legend"></div>
+
   <div id="reading-box" class="rail-box"></div>
 
   <div id="load-error"></div>
@@ -355,6 +383,13 @@ en: {
   bar_sub:     'Isolation Forest',
   leg_monthly: 'Large points: monthly states',
   leg_cloud:   'Small points: underlying temporal cloud',
+  // Colour & Motion legend — encoding only (shown in C2/C3, hidden in C1 static).
+  enc_title:   'Colour &amp; motion',
+  enc_sub:     'How unusual each month was — flagged bottom-up by an anomaly detector.',
+  enc_typical: 'typical',
+  enc_unusual: 'unusual',
+  enc_steady:  'steady &middot; a typical month',
+  enc_shaky:   'shaky &middot; a more unusual month',
   enh_btn:     '&#9672; ENHANCED EXPERIENCE',
   enh_title:   'Enhanced Experience',
   enh_body:    'This enhanced mode introduces additional perceptual layers for exploration. ' +
@@ -397,6 +432,13 @@ it: {
   bar_sub:     'Isolation Forest',
   leg_monthly: 'Punti grandi: stati mensili',
   leg_cloud:   'Punti piccoli: nuvola temporale sottostante',
+  // Legenda Colore & Movimento — solo codifica (mostrata in C2/C3, nascosta in C1 statica).
+  enc_title:   'Colore e movimento',
+  enc_sub:     'Quanto era insolito ogni mese — segnalato dal basso da un rilevatore di anomalie.',
+  enc_typical: 'tipico',
+  enc_unusual: 'insolito',
+  enc_steady:  'stabile &middot; un mese tipico',
+  enc_shaky:   'tremolante &middot; un mese pi&ugrave; insolito',
   enh_btn:     '&#9672; ESPERIENZA AVANZATA',
   enh_title:   'Esperienza Avanzata',
   enh_body:    'Questa modalit&agrave; avanzata introduce ulteriori livelli percettivi per ' +
@@ -1312,6 +1354,7 @@ function setCond(c){
   const dyn = c !== 'C1';
   document.getElementById('controls').style.display      = dyn ? 'flex' : 'none';
   document.getElementById('readouts').style.display      = dyn ? 'block' : 'none';
+  document.getElementById('encode-legend').style.display = dyn ? 'block' : 'none';  // colour+motion key: C2/C3 only
   document.getElementById('time-wrap').style.visibility  = dyn ? 'visible' : 'hidden';
   document.getElementById('sound-toggle').style.display  = c === 'C3' ? '' : 'none';
   document.getElementById('hover-hint').style.display    = c === 'C3' ? 'block' : 'none';
@@ -1517,6 +1560,17 @@ function applyLang(l){
   document.getElementById('load-error').innerHTML   = T('load_error');
   document.getElementById('anom-toggle').innerHTML  = T(emphOn ? 'emph_on' : 'emph_off');
   document.getElementById('cloud-toggle').innerHTML = T(cloudShow ? 'cloud_on' : 'cloud_off');
+  // Colour & Motion legend: what the point colour + path shakiness mean (encoding
+  // only, never the reading). A live vibrating sample sits inside it. Visibility
+  // is governed by setCond (C2/C3 only); this just (re)fills the text per language.
+  document.getElementById('encode-legend').innerHTML =
+    '<div class="el-title">' + T('enc_title') + '</div>' +
+    '<div class="el-sub">' + T('enc_sub') + '</div>' +
+    '<div class="el-ramp"></div>' +
+    '<div class="el-scale"><span>' + T('enc_typical') + '</span><span>' + T('enc_unusual') + '</span></div>' +
+    '<div class="el-row"><span class="el-dot" style="background:#7fb4d9"></span><span>' + T('enc_steady') + '</span></div>' +
+    '<div class="el-row"><span class="el-dot shaky" style="background:#c65747"></span><span>' + T('enc_shaky') + '</span></div>' +
+    '<canvas class="el-motion" width="240" height="34"></canvas>';
   document.getElementById('enh-toggle').innerHTML   = T('enh_btn');
   document.getElementById('enh-dlg-title').innerHTML = T('enh_title');
   document.getElementById('enh-dlg-body').innerHTML  = T('enh_body');
@@ -1590,6 +1644,35 @@ async function boot(){
   requestAnimationFrame(draw);
 }
 boot();
+
+/* Live motion sample inside the Colour & Motion legend: a single line that is
+   cool & flat on the left and warms & shakes toward the right — the SAME
+   colour(anomColor) → shake mapping the trail uses, so it is data-grounded, not
+   decorative. Redraws the current canvas each frame (survives language rebuilds).
+   The legend is display:none in C1, so querySelector simply finds nothing then. */
+function drawMotionSample(){
+  const cv = document.querySelector('#encode-legend .el-motion');
+  if (cv && cv.offsetParent !== null){
+    const c = cv.getContext('2d');
+    const W = cv.width, H = cv.height, mid = H / 2;
+    c.clearRect(0, 0, W, H);
+    c.lineWidth = 2.2; c.lineCap = 'round';
+    const t = performance.now() * 0.004, seg = 64;
+    let py = mid;
+    for (let i = 0; i <= seg; i++){
+      const f = i / seg;
+      const amp = f * f * (H * 0.42);                 // flat at the left, growing to the right
+      const y = mid + Math.sin(f * 22 + t) * amp;
+      if (i > 0){
+        c.strokeStyle = anomColor(f);                 // cool blue → warm, exactly like the trail
+        c.beginPath(); c.moveTo((i - 1) / seg * W, py); c.lineTo(f * W, y); c.stroke();
+      }
+      py = y;
+    }
+  }
+  requestAnimationFrame(drawMotionSample);
+}
+drawMotionSample();
 </script>
 </body>
 </html>
