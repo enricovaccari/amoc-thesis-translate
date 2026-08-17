@@ -96,7 +96,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* EN/IT toggle — UI chrome only: re-labels text, never changes any number.
    Lives OUTSIDE #ui and above the splash (z 60) so the language can be chosen
    on the landing screen, before anything else. */
-#lang-toggle{position:absolute;top:96px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle{position:absolute;top:48px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
 #lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.2s}
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
@@ -105,7 +105,9 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
    the EN/IT toggle */
 /* Sits on the language-toggle row, to its LEFT — clear of both the toggle
    (right) and the orientation compass (above, centre). */
-#context-top{position:absolute;top:62px;right:170px;width:380px;text-align:left;pointer-events:none}
+/* Data block + language toggle sit on the SAME visual level as the orientation
+   compass (top:48), forming one clean top row. */
+#context-top{position:absolute;top:48px;right:170px;width:380px;text-align:left;pointer-events:none}
 #context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
   color:var(--ink-soft);letter-spacing:.4px}
 #context-top #source{margin-top:10px;font-family:ui-monospace,monospace;font-size:8.5px;
