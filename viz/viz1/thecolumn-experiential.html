@@ -427,11 +427,13 @@ import { mountSceneFrame } from '../../shared/scene-frame.js';
 window.LA_INTRO = { INTRO, introHTML, anchorQuestionHTML };
 window.LA_CONTEXT = { describesHTML, sourceHTML, helpContent };
 // On-figure "?" help panel — the SAME module and content as column-static.html
-// (shared/scene-frame.js). This scene already has its own "i" (the AMOC-intensity
-// control that opens the documentation page), so the frame adds only the "?"
-// beside it. Hidden until screen 3; the driving question is asked once on the
-// intro screen, not repeated here.
-window.LA_FRAME = mountSceneFrame({ pos: { left: '384px', bottom: '80px' }, hasInfo: false });
+// (shared/scene-frame.js), so the "?" panel is byte-identical in both conditions
+// (this is where the neutral Ψ background lives — symmetric across groups). This
+// scene has its own inline "i" beside the AMOC-intensity readout (#amoc-info),
+// so the frame adds only the "?". Placed top-right (clear of the readout row and
+// the timeline, and of the longer Italian readout label that pushes #amoc-info
+// right). Hidden until screen 3; the driving question is asked once on the intro.
+window.LA_FRAME = mountSceneFrame({ pos: { top: '88px', right: '40px' }, hasInfo: false });
 window.LA_CORE = { loadBundle, deriveAnchors, velocity, reconstructProfile, COL, INK, FONT };
 window.COL = COL;                    // canvas code reads the shared palette
 if (window.__relang) window.__relang();

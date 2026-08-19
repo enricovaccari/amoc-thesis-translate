@@ -357,7 +357,11 @@ body.pre-start #ui{opacity:0}
 import { loadBundle } from '../../shared/bundle.js';
 import { COL, INK, FONT } from '../../shared/palette.js';
 import { introHTML } from '../../shared/intro-engine.js';
-import { sourceHTML, describesHTML, readingLines } from '../../shared/context-engine.js';
+import { sourceHTML, describesHTML, readingLines, helpContent, infoContent } from '../../shared/context-engine.js';
+import { mountSceneFrame } from '../../shared/scene-frame.js';
+// On-figure "i" info + "?" help — the SAME shared module/content as the study
+// files, so the demo shows participants the identical neutral framing.
+const sceneFrame = mountSceneFrame({ pos: { left: '155px', bottom: '66px' }, hasInfo: true });
 
 const STR = {
 en: {
@@ -1537,6 +1541,7 @@ document.getElementById('intro-screen').addEventListener('click', e => {
   document.getElementById('intro-screen').style.display = 'none';
   document.body.classList.remove('pre-start');
   setCond('C1');
+  sceneFrame.show(true);                       // reveal "i"/"?" with the scene
 });
 
 /* Language toggle: labels only — never a number. */
@@ -1545,6 +1550,7 @@ function applyLang(l){
   localStorage.setItem('la-lang', l);
   document.documentElement.lang = l;
   document.title = T('doc_title');
+  sceneFrame.render(l, { help: helpContent(l), info: infoContent(l) });
   document.getElementById('lang-en').classList.toggle('active', l === 'en');
   document.getElementById('lang-it').classList.toggle('active', l === 'it');
   document.getElementById('splash-scene').innerHTML = T('splash_scene');

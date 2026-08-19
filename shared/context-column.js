@@ -8,12 +8,18 @@
  *
  * THE HARD LINE — what this file may and may not say:
  *   MAY:   what the figure shows (plain language), where the data comes from,
- *          how to read the axes, what a unit means.
+ *          how to read the axes, what a unit means, and — added deliberately —
+ *          what the plotted quantity FUNDAMENTALLY IS: that Ψ is an accumulated
+ *          (integrated) transport, a volume flow, and is therefore NOT itself a
+ *          local velocity. A non-specialist cannot be expected to infer Ψ's
+ *          mathematical nature from the picture, so we state it as neutral
+ *          background (identically to both groups).
  *   NEVER: what the SHAPE of the curve means, that there are opposing cells,
  *          where the flow boundaries are (~1050 m / ~5065 m), what the peak
- *          implies. That structural knowledge is the quantity under
- *          measurement — we may teach both groups to read the speedometer;
- *          we may never tell either group how fast the car is going.
+ *          implies, or which way the flow runs at any depth. That structural
+ *          knowledge is the quantity under measurement — we may say a
+ *          speedometer reads accumulated distance, not speed; we may never tell
+ *          either group how fast, or in which direction, the car is going.
  *
  * All three blocks are NON-QUANTITATIVE FRAMING (provenance ledger,
  * Table 7.2): they describe the object and the mechanics, never the data.
@@ -42,7 +48,8 @@ export const CONTEXT = {
     helpLines: [
       'This picture is water: the Atlantic seen from the side, as one tall column.',
       'Up is the surface of the ocean. Down is the deep ocean, almost six kilometres below.',
-      'Across the picture is how much water is moving at that depth.',
+      'Across the picture is the overturning stream function (&Psi;): an accumulated &mdash; integrated &mdash; measure of how much water is transported (a volume flow in Sverdrups), not the local speed of the water itself.',
+      'How the water moves at a given depth is a related but distinct quantity: it corresponds to how this accumulated measure changes with depth, rather than to its value.',
       'Look at what the water is doing at each depth, from the top of the column to the bottom.',
     ],
     // The "i" panel: general project + data context, non-leading. No machine
@@ -68,7 +75,8 @@ export const CONTEXT = {
     helpLines: [
       'Questa immagine &egrave; acqua: l&rsquo;Atlantico visto di taglio, come un&rsquo;unica alta colonna.',
       'In alto c&rsquo;&egrave; la superficie dell&rsquo;oceano. In basso l&rsquo;oceano profondo, quasi sei chilometri pi&ugrave; gi&ugrave;.',
-      'Attraverso l&rsquo;immagine c&rsquo;&egrave; quanta acqua si sta muovendo a quella profondit&agrave;.',
+      'Attraverso l&rsquo;immagine c&rsquo;&egrave; la funzione di corrente del ribaltamento (&Psi;): una misura accumulata &mdash; integrata &mdash; di quanta acqua viene trasportata (una portata volumetrica in Sverdrup), non la velocit&agrave; locale dell&rsquo;acqua stessa.',
+      'Come si muove l&rsquo;acqua a una data profondit&agrave; &egrave; una quantit&agrave; correlata ma distinta: corrisponde a come questa misura accumulata cambia con la profondit&agrave;, piuttosto che al suo valore.',
       'Guarda che cosa fa l&rsquo;acqua a ogni profondit&agrave;, dalla cima della colonna fino al fondo.',
     ],
     infoTitle: 'Informazioni sulla visualizzazione',

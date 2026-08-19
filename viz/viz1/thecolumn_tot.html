@@ -372,10 +372,18 @@ import { loadBundle, deriveAnchors, velocity } from '../../shared/bundle.js';
 import { reconstructProfile } from '../../shared/reconstruct.js';
 import { COL, INK, FONT } from '../../shared/palette.js';
 import { INTRO, introHTML } from '../../shared/intro-column.js';
-import { describesHTML, sourceHTML } from '../../shared/context-column.js';
+import { describesHTML, sourceHTML, helpContent } from '../../shared/context-column.js';
+import { mountSceneFrame } from '../../shared/scene-frame.js';
 window.LA_INTRO = { INTRO, introHTML };
-window.LA_CONTEXT = { describesHTML, sourceHTML };
+window.LA_CONTEXT = { describesHTML, sourceHTML, helpContent };
 window.LA_CORE = { loadBundle, deriveAnchors, velocity, reconstructProfile, COL, INK, FONT };
+// On-figure "?" help panel — the SAME shared module/content as the study files,
+// so the demo shows the identical neutral framing (including what Ψ is). The
+// inline "i" beside the AMOC-intensity readout (#amoc-info) is a separate control.
+// Placed in the bottom gap between the caption and the flow legend (the top-right
+// is taken by the C1/C2/C3 selector) — clear of #amoc-info, which the longer
+// Italian readout label pushes rightward across the old "?" position.
+window.LA_FRAME = mountSceneFrame({ pos: { left: '880px', bottom: '52px' }, hasInfo: false });
 window.COL = COL;                    // canvas code reads the shared palette
 if (window.__relang) window.__relang();
 </script>
@@ -1462,6 +1470,7 @@ document.getElementById('intro-screen').addEventListener('click', e => {
 function startVisualization(){
   document.body.classList.remove('pre-start');
   setCond('C1');
+  if (window.LA_FRAME) window.LA_FRAME.show(true);   // reveal "?" with the scene
 }
 
 document.getElementById('b-c1').onclick = () => setCond('C1');
@@ -1492,6 +1501,8 @@ function applyLang(l){
     document.getElementById('describes').innerHTML = window.LA_CONTEXT.describesHTML(l);
     document.getElementById('source').innerHTML    = window.LA_CONTEXT.sourceHTML(l);
   }
+  if (window.LA_FRAME && window.LA_CONTEXT && window.LA_CONTEXT.helpContent)
+    window.LA_FRAME.render(l, { help: window.LA_CONTEXT.helpContent(l) });
   document.getElementById('lbl-seldepth').innerHTML = T('sel_depth');
   document.getElementById('lbl-amoc').innerHTML     = T('amoc_int');
   document.querySelector('.sv-note').innerHTML      = T('sv_note');
