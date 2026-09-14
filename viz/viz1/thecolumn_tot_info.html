@@ -69,10 +69,10 @@ footer{margin-top:64px;padding-top:26px;border-top:1px solid var(--line);font-si
    visualization files; always visible. */
 body{cursor:none}
 a,button{cursor:none}
-#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;
   will-change:transform;opacity:1;transition:opacity .3s}
-#cursor-dot{width:5px;height:5px;background:#fff}
-#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+#cursor-dot{width:6px;height:6px;background:#fff;box-shadow:0 0 0 1px rgba(3,12,24,.65),0 0 5px rgba(0,0,0,.55)}
+#cursor-ring{width:30px;height:30px;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(3,12,24,.5),inset 0 0 0 1px rgba(3,12,24,.5),0 0 6px rgba(0,0,0,.35);
   transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s}
 
 /* EN/IT toggle — UI chrome only: re-labels text, never changes content structure */

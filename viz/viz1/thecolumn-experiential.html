@@ -87,8 +87,11 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 #orient .lat{max-width:210px;margin:4px auto 0;line-height:1.4;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;text-transform:uppercase}
 /* Atmospheric tagline — ONE line, left-aligned in the upper-left identity stack
    (under the credit), clear of the right-hand data block. */
-#intro-line{position:absolute;top:130px;left:50px;max-width:none;white-space:nowrap;text-align:left;
-  font-size:11px;line-height:1.55;opacity:.55}
+/* Width capped relative to the plot origin (axisX = 55% of W) so the line never
+   crosses into the curve at any viewport width; it wraps within the left band.
+   A soft scrim shadow keeps it legible over the particle field. */
+#intro-line{position:absolute;top:128px;left:50px;max-width:calc(50% - 100px);text-align:left;
+  font-size:11px;line-height:1.5;opacity:.72;text-shadow:0 1px 6px rgba(2,10,20,.9),0 0 3px rgba(2,10,20,.8)}
 [data-hint]{pointer-events:auto}
 
 /* === E. CONTROLLI (top-right) — hint just before the buttons === */
@@ -96,7 +99,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* EN/IT toggle — UI chrome only: re-labels text, never changes any number.
    Lives OUTSIDE #ui and above the splash (z 60) so the language can be chosen
    on the landing screen, before anything else. */
-#lang-toggle{position:absolute;top:48px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle{position:absolute;top:36px;right:40px;display:flex;gap:10px;pointer-events:auto;z-index:60}
 #lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.2s}
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
@@ -108,10 +111,10 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* Data block + language toggle sit on the SAME visual level as the orientation
    compass (top:48), forming one clean top row. */
 #context-top{position:absolute;top:48px;right:170px;width:380px;text-align:left;pointer-events:none}
-#context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.75;
-  color:var(--ink-soft);letter-spacing:.4px}
-#context-top #source{margin-top:10px;font-family:ui-monospace,monospace;font-size:8.5px;
-  letter-spacing:1.2px;color:var(--ink-soft);opacity:.8}
+#context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.6;
+  color:var(--ink-soft);letter-spacing:.4px;text-shadow:0 1px 6px rgba(2,10,20,.9),0 0 3px rgba(2,10,20,.8)}
+#context-top #source{margin-top:8px;font-family:ui-monospace,monospace;font-size:8.5px;
+  letter-spacing:1.2px;color:var(--ink-soft);opacity:.8;text-shadow:0 1px 5px rgba(2,10,20,.9)}
 #howto{max-width:200px;margin-right:14px;text-align:right;font-size:10px;line-height:1.5;letter-spacing:.5px;opacity:.5;font-style:italic}
 #conditions button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,0.1);color:var(--ink);padding:10px 18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.3s}
 #conditions button.active{background:var(--ink);color:var(--abyss);font-weight:700}
@@ -120,8 +123,9 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* top/bottom match the plot area (topY=150, botY=H-180); never resizes on hover */
 #left-rail{position:absolute;left:110px;top:158px;bottom:180px;width:130px;display:none;pointer-events:auto}
 #depth-wrap{display:flex;gap:16px;height:100%;align-items:stretch}
-#depth-ticks{position:relative;flex:1;font-size:9px;letter-spacing:1px;opacity:.55}
-#depth-ticks span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap}
+#depth-ticks{position:relative;flex:1;font-size:9.5px;letter-spacing:1px;opacity:.9}
+#depth-ticks span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap;
+  color:var(--ink);text-shadow:0 1px 4px rgba(2,10,20,.95),0 0 2px rgba(2,10,20,.9)}
 
 /* === E3. LEGENDA (bottom-right, permanente) + PANNELLO CONTESTUALE (a sinistra della legenda) === */
 .rail-box{background:rgba(4,16,30,.72);border-left:2px solid var(--return-deep);padding:12px 14px;
@@ -185,10 +189,10 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
    the slider stays easy and smooth to drag, no freezing on a 1px target. */
 #depth{-webkit-appearance:none;appearance:none;writing-mode:vertical-lr;width:22px;height:100%;outline:none;
   cursor:pointer;touch-action:none;
-  background:linear-gradient(to right, transparent calc(50% - 1px), rgba(255,255,255,.3) calc(50% - 1px),
-    rgba(255,255,255,.3) calc(50% + 1px), transparent calc(50% + 1px))}
-#depth::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--beacon);border:2px solid #fff;cursor:pointer;box-shadow:0 0 15px var(--beacon)}
-#depth::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--beacon);border:2px solid #fff;cursor:pointer}
+  background:linear-gradient(to right, transparent calc(50% - 1.5px), rgba(255,255,255,.5) calc(50% - 1.5px),
+    rgba(255,255,255,.5) calc(50% + 1.5px), transparent calc(50% + 1.5px))}
+#depth::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--beacon);border:2px solid #fff;cursor:pointer;box-shadow:0 0 20px var(--beacon),0 0 7px var(--beacon)}
+#depth::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--beacon);border:2px solid #fff;cursor:pointer;box-shadow:0 0 20px var(--beacon)}
 
 /* Hover cards — small educational infographics (Experiential mode) */
 #hover{position:absolute;pointer-events:none;padding:0;background:rgba(4,16,30,.96);border:1px solid rgba(255,179,92,.5);
@@ -230,13 +234,17 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* === H. CURSORE (minimale: punto + anello che segue morbido) === */
 /* Always visible, on EVERY screen (landing, intro, visualization): the filled
    dot tracks instantly, the ring follows softly. z 200 sits above the splash. */
-#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+/* Custom cursor — filled dot (instant) trailed by a ring (eased). High contrast
+   so it never blends into bright/busy areas: white with a crisp dark outline and
+   a soft dark glow. The ring trails via a compositor-driven CSS transform
+   transition (stays smooth even while the particle loop is busy). z above all. */
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;
   will-change:transform;opacity:1;transition:opacity .3s}
-#cursor-dot{width:5px;height:5px;background:#fff}
-/* slower, softer lag: the outer ring takes noticeably longer to catch up */
-/* transform is eased in JS (rAF lerp) for frame-smooth motion — only opacity/size transition here */
-#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
-  transition:opacity .3s,width .2s,height .2s}
+#cursor-dot{width:6px;height:6px;background:#fff;
+  box-shadow:0 0 0 1px rgba(3,12,24,.65),0 0 5px rgba(0,0,0,.55)}
+#cursor-ring{width:30px;height:30px;border:1.5px solid rgba(255,255,255,.85);
+  box-shadow:0 0 0 1px rgba(3,12,24,.5),inset 0 0 0 1px rgba(3,12,24,.5),0 0 6px rgba(0,0,0,.35);
+  transition:transform .5s cubic-bezier(.16,.66,.3,1),opacity .3s}
 
 #load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
 
@@ -344,7 +352,7 @@ body.pre-start #ui{opacity:0}
         <span class="ro-label" id="lbl-seldepth">SELECTED DEPTH</span><span class="big" id="sel-depth">&mdash;</span>
       </div>
       <div class="ro-item">
-        <span class="ro-label"><span id="beat-dot"></span><span id="lbl-amoc">AMOC INTENSITY (MAX &Psi;)</span><span id="amoc-info">i</span></span><span class="big" id="peak-sv">&mdash; Sv</span>
+        <span class="ro-label"><span id="beat-dot"></span><span id="lbl-amoc">AMOC INTENSITY (MAX &Psi;)</span></span><span class="big" id="peak-sv">&mdash; Sv</span>
       </div>
     </div>
     <div class="sv-note">1 SV (SVERDRUP) = 10&#8310; M&sup3;/S</div>
@@ -422,18 +430,16 @@ import { loadBundle, deriveAnchors, velocity } from '../../shared/bundle.js';
 import { reconstructProfile } from '../../shared/reconstruct.js';
 import { COL, INK, FONT } from '../../shared/palette.js';
 import { INTRO, introHTML, anchorQuestionHTML } from '../../shared/intro-column.js';
-import { describesHTML, sourceHTML, helpContent } from '../../shared/context-column.js';
+import { describesHTML, sourceHTML, helpContent, infoContent } from '../../shared/context-column.js';
 import { mountSceneFrame } from '../../shared/scene-frame.js';
 window.LA_INTRO = { INTRO, introHTML, anchorQuestionHTML };
-window.LA_CONTEXT = { describesHTML, sourceHTML, helpContent };
-// On-figure "?" help panel — the SAME module and content as column-static.html
-// (shared/scene-frame.js), so the "?" panel is byte-identical in both conditions
-// (this is where the neutral Ψ background lives — symmetric across groups). This
-// scene has its own inline "i" beside the AMOC-intensity readout (#amoc-info),
-// so the frame adds only the "?". Placed top-right (clear of the readout row and
-// the timeline, and of the longer Italian readout label that pushes #amoc-info
-// right). Hidden until screen 3; the driving question is asked once on the intro.
-window.LA_FRAME = mountSceneFrame({ pos: { top: '88px', right: '40px' }, hasInfo: false });
+window.LA_CONTEXT = { describesHTML, sourceHTML, helpContent, infoContent };
+// On-figure "i" info + "?" help cluster — the SAME shared module/content as
+// column-static.html, so both administered conditions show byte-identical panels
+// (the neutral Ψ background lives in "?"). Positioned top-right below the EN/IT
+// toggle, IDENTICAL to the other scenes (one coherent system). The old separate
+// inline readout "i" has been retired in favour of this single cluster.
+window.LA_FRAME = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
 window.LA_CORE = { loadBundle, deriveAnchors, velocity, reconstructProfile, COL, INK, FONT };
 window.COL = COL;                    // canvas code reads the shared palette
 if (window.__relang) window.__relang();
@@ -588,8 +594,8 @@ let lastSelTxt = '';
 let curZone = null;                                           // macro-zone under the cursor (calm explanations)
 let speedMul = 1;                                             // playback speed only (never the physics)
 let frame = 0;                                                // frame counter (tail sampling clock)
-const TAIL_SAMPLE = 6;                                        // record a tail point every N frames
-const TAIL_MAX = 40;                                          // 40 samples × 6 frames ≈ 4 s: heading readable at a glance, no smear
+const TAIL_SAMPLE = 4;                                        // record a tail point every N frames (denser → smoother, less angular; same cap = no extra cost)
+const TAIL_MAX = 40;                                          // 40 samples × 4 frames ≈ 2.7 s: heading readable at a glance, fades after a few seconds
 const FLOW_GAIN = 70;                                         // display gain, LINEAR in ∂Ψ/∂z (order & ratios preserved — scaffolding, not information)
 const TAIL_BANDS = 6;                                         // tail segments: more bands → smoother alpha fade-out
 let densityCount = 1400;                                      // number of particles (MED default: tuned so the counter-flow reads best with the longer tails)
@@ -1029,7 +1035,7 @@ function draw(){
       // weaves more in anomalous months, still smoothly (low freq → no aliasing
       // when the tail is sampled every few frames).
       const y  = yOfDepth(DEPTH[p.i], L)
-               + Math.sin(p.x*0.015 + p.ph) * wob
+               + Math.sin(p.x*0.012 + p.ph) * wob
                + (turb > 0 ? Math.sin(p.x*0.026 + p.ph*3.3) * turb * 8 : 0);
       // advection ∝ ∂Ψ/∂z; anomaly adds per-parcel speed irregularity
       p.x += vz * FLOW_GAIN * speedMul * (1 + (turb > 0 ? turb*0.6*Math.sin(p.ph*13 + frame*0.05) : 0));
@@ -1284,24 +1290,14 @@ function stopAudio(){
 // follows smoothly (CSS transition). No trail, no effect on the particles.
 const curDot = document.getElementById('cursor-dot');
 const curRing = document.getElementById('cursor-ring');
-// Frame-smooth custom cursor. The dot tracks the pointer INSTANTLY (set right in
-// moveCursor, so it never depends on rAF and can never lag or freeze). The ring
-// trails softly, eased every frame by one rAF loop — fluid at any refresh rate,
-// no jitter/snapping from sparse pointer events. (The ring is no longer
-// CSS-transitioned; JS owns its transform.)
-let curTX = innerWidth/2, curTY = innerHeight/2;           // pointer target (for the ring)
-let ringX = curTX, ringY = curTY;                          // eased ring position
+// Custom cursor: the dot tracks the pointer INSTANTLY; the ring trails via a
+// compositor-driven CSS transform transition (set here, eased by CSS) — smooth
+// even while the particle loop is busy, and it can never freeze on the main thread.
 function moveCursor(x, y){
-  curTX = x; curTY = y;
-  curDot.style.transform = 'translate(' + (x-2.5) + 'px,' + (y-2.5) + 'px)';   // dot: instant
+  curDot.style.transform  = 'translate(' + (x-3)  + 'px,' + (y-3)  + 'px)';   // dot: instant (6px)
+  curRing.style.transform = 'translate(' + (x-15) + 'px,' + (y-15) + 'px)';   // ring: CSS-eased trail
 }
-function cursorLoop(){
-  ringX += (curTX - ringX) * 0.18;  ringY += (curTY - ringY) * 0.18;           // soft trailing ring
-  curRing.style.transform = 'translate(' + (ringX-15) + 'px,' + (ringY-15) + 'px)';
-  requestAnimationFrame(cursorLoop);
-}
-moveCursor(innerWidth/2, innerHeight/2);   // park the dot at centre until the first mousemove
-cursorLoop();
+moveCursor(innerWidth/2, innerHeight/2);   // park at centre until the first mousemove
 
 // 4b. Bokeh — soft, blurred, drifting light spots, shown on BOTH the landing
 // screen and the intro screen (screen 2). One set of spots is advanced each
@@ -1395,7 +1391,6 @@ function setCond(c){
   document.getElementById('controls').style.display      = c === 'C1' ? 'none' : 'flex';
   document.getElementById('context-panel').style.display = c === 'C1' ? 'none' : 'block';
   document.getElementById('mode-caption').style.display  = c === 'C1' ? 'block' : 'none';
-  document.getElementById('amoc-info').style.display     = c === 'C1' ? 'none' : 'inline-block';
   document.getElementById('sel-row').style.display       = c === 'C1' ? 'none' : 'flex';
   curZone = null;
   document.getElementById('sound-toggle').style.display = c === 'C3' ? '' : 'none';
@@ -1505,16 +1500,8 @@ document.getElementById('play-toggle').onclick = () => setPlaying(!playing);
 
 // Info "i": hover → transparency card; click → dedicated documentation page
 const infoCardEl = document.getElementById('info-card');
-const amocInfoEl = document.getElementById('amoc-info');
-amocInfoEl.addEventListener('mouseenter', () => {
-  infoCardEl.innerHTML = INFO_AMOC;
-  infoCardEl.style.display = 'block';
-  const r = amocInfoEl.getBoundingClientRect();
-  infoCardEl.style.left = Math.min(innerWidth - 312, Math.max(12, r.left)) + 'px';
-  infoCardEl.style.top  = Math.max(12, r.top - infoCardEl.offsetHeight - 10) + 'px';
-});
-amocInfoEl.addEventListener('mouseleave', () => { infoCardEl.style.display = 'none'; });
-amocInfoEl.addEventListener('click', () => { window.open('thecolumn_tot_info.html', '_blank', 'noopener'); });
+// The AMOC-intensity readout's inline "i" was retired; general info now lives in
+// the shared top-right "i" panel (mountSceneFrame), consistent with every scene.
 
 // Playback speed — scales the animation only, never the physics/trajectories
 document.getElementById('speed-seg').addEventListener('click', e => {
@@ -1596,10 +1583,10 @@ function applyLang(l){
   const introScr = document.getElementById('intro-screen');
   if (introScr.style.display === 'flex' && window.LA_INTRO)
     introScr.querySelector('.panel').innerHTML = window.LA_INTRO.introHTML(l);
-  // "?" help — content from the shared module, byte-identical to
+  // "i" info + "?" help — content from the shared module, byte-identical to
   // column-static.html. Empty until the module bridge has loaded.
   if (window.LA_FRAME && window.LA_CONTEXT)
-    window.LA_FRAME.render(l, { help: window.LA_CONTEXT.helpContent(l) });
+    window.LA_FRAME.render(l, { help: window.LA_CONTEXT.helpContent(l), info: window.LA_CONTEXT.infoContent(l) });
   setPlaying(playing);                             // refresh PAUSE/RESUME label
   refreshSoundBtn();                               // refresh SOUND ON/OFF label
   if (dataLoaded){

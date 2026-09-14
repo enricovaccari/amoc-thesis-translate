@@ -113,12 +113,14 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 
 /* Nudged lower (§7), clear of the header/context row; keeps its gentle breathing.
    nowrap + a smaller size so the full instruction stays on ONE line (EN & IT). */
-#hover-hint{position:absolute;top:134px;left:50%;transform:translateX(-50%);max-width:none;white-space:nowrap;text-align:center;
+/* Wrapped centred block (was a single ~700px line spanning the plot); sits in
+   the band between the description above and the plot below. */
+#hover-hint{position:absolute;top:124px;left:50%;transform:translateX(-50%);max-width:600px;text-align:center;line-height:1.7;
   font-size:9px;letter-spacing:1.4px;text-transform:uppercase;
   animation:hint-breathe 5.2s ease-in-out infinite}
 @keyframes hint-breathe{0%,100%{opacity:.28}50%{opacity:.52}}
 
-#lang-toggle{position:absolute;top:36px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle{position:absolute;top:36px;right:40px;display:flex;gap:10px;pointer-events:auto;z-index:60}
 #lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:none;transition:.2s}
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
@@ -210,11 +212,10 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
    luminous bloom + water-lens of the enhanced experience, which is centred on the
    cursor and would otherwise wash a plain white dot out completely. On the normal
    dark scene the halo is invisible (dark on dark), so the cursor is unchanged. */
-#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
-  will-change:transform;opacity:1;transition:opacity .3s;
-  filter:drop-shadow(0 0 1.4px rgba(0,0,0,.9)) drop-shadow(0 0 3px rgba(0,0,0,.5))}
-#cursor-dot{width:5px;height:5px;background:#fff}
-#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;
+  will-change:transform;opacity:1;transition:opacity .3s}
+#cursor-dot{width:6px;height:6px;background:#fff;box-shadow:0 0 0 1px rgba(3,12,24,.65),0 0 5px rgba(0,0,0,.55)}
+#cursor-ring{width:30px;height:30px;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(3,12,24,.5),inset 0 0 0 1px rgba(3,12,24,.5),0 0 6px rgba(0,0,0,.35);
   transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s,width .2s,height .2s}
 
 #load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}
@@ -383,7 +384,7 @@ import { mountSceneFrame } from '../../shared/scene-frame.js';
 // condition (shared/scene-frame.js), so framing stays symmetric. Hidden until
 // screen 3; the driving question is asked once on the intro, not repeated here.
 // (Named sceneFrame — `frame` is already this file's animation-frame counter.)
-const sceneFrame = mountSceneFrame({ pos: { left: '265px', bottom: '67px' }, hasInfo: true });
+const sceneFrame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
 
 const STR = {
 en: {

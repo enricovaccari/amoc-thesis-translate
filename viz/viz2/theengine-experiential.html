@@ -98,7 +98,7 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 /* EN/IT toggle — UI chrome only: re-labels text, never changes any number.
    Its top edge aligns with the centred context block (item 8). Above the
    splash (z 60) so the language can be chosen on the landing screen. */
-#lang-toggle{position:absolute;top:36px;right:50px;display:flex;gap:6px;pointer-events:auto;z-index:60}
+#lang-toggle{position:absolute;top:36px;right:40px;display:flex;gap:10px;pointer-events:auto;z-index:60}
 #lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:none;transition:.2s}
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
@@ -230,10 +230,10 @@ body.pre-start #anom-toggle,body.pre-start #cloud-toggle{display:none}
   padding:6px 10px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 
 /* === H. CURSOR (minimal: dot + soft-following ring, every screen) === */
-#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;
   will-change:transform;opacity:1;transition:opacity .3s}
-#cursor-dot{width:5px;height:5px;background:#fff}
-#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+#cursor-dot{width:6px;height:6px;background:#fff;box-shadow:0 0 0 1px rgba(3,12,24,.65),0 0 5px rgba(0,0,0,.55)}
+#cursor-ring{width:30px;height:30px;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(3,12,24,.5),inset 0 0 0 1px rgba(3,12,24,.5),0 0 6px rgba(0,0,0,.35);
   transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s,width .2s,height .2s}
 
 #load-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:ui-monospace,monospace;font-size:12px;color:var(--beacon);text-align:center;line-height:2;display:none}

@@ -79,10 +79,10 @@ button{cursor:none}
 
 /* Custom cursor — filled dot + soft-following ring, always visible on EVERY
    screen (same identity as the experiential file). */
-#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:200;
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;
   will-change:transform;opacity:1;transition:opacity .3s}
-#cursor-dot{width:5px;height:5px;background:#fff}
-#cursor-ring{width:30px;height:30px;border:1px solid rgba(255,255,255,.45);
+#cursor-dot{width:6px;height:6px;background:#fff;box-shadow:0 0 0 1px rgba(3,12,24,.65),0 0 5px rgba(0,0,0,.55)}
+#cursor-ring{width:30px;height:30px;border:1.5px solid rgba(255,255,255,.85);box-shadow:0 0 0 1px rgba(3,12,24,.5),inset 0 0 0 1px rgba(3,12,24,.5),0 0 6px rgba(0,0,0,.35);
   transition:transform .55s cubic-bezier(.16,.66,.3,1),opacity .3s}
 
 /* === AUTHOR ATTRIBUTION === bottom-left, comfortable padding from both edges;
@@ -100,7 +100,7 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
 #source{margin-top:10px;font-size:8.5px;letter-spacing:1.2px;color:var(--ink-soft,rgba(231,240,247,.55));opacity:.8}
 
 /* --- EN/IT toggle (UI chrome only — never changes data) --- */
-#lang-toggle{position:fixed;top:36px;right:40px;z-index:60;display:flex;gap:6px}
+#lang-toggle{position:fixed;top:36px;right:40px;z-index:60;display:flex;gap:10px}
 #lang-toggle button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.18);
   color:var(--ink,#e7f0f7);padding:6px 12px;font-family:inherit;font-size:10px;
   letter-spacing:2px;cursor:pointer;transition:.2s}
