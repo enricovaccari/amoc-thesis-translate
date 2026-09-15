@@ -149,8 +149,7 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
 <header>
   <h1>Living Atlantic</h1>
   <div class="scene-label" id="scene-label"></div>
-  <div id="describes"></div>
-  <div id="source"></div>
+  <!-- describes + source moved into the far-right "Information" panel (scene-frame.js) -->
 </header>
 
 <div id="lang-toggle">
@@ -185,7 +184,7 @@ import { mountSceneFrame } from '../../shared/scene-frame.js';
 // and the SAME content as the experiential condition (shared/scene-frame.js), so
 // framing stays symmetric. Sits under the language toggle; hidden until screen 3.
 // (The driving question is asked once on the intro screen, not repeated here.)
-const frame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
+const frame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true, label: true });
 
 // Palette → CSS custom properties (single source of truth for scaffolding).
 const rootStyle = document.documentElement.style;
@@ -342,14 +341,18 @@ function applyLang(l){
   document.getElementById('splash-scene').innerHTML = T('splash_scene');
   document.getElementById('splash-cta').innerHTML = T('splash_cta');
   document.getElementById('load-error').innerHTML = T('load_error');
-  // Shared context (shared/context-column.js) — imported verbatim by both conditions.
-  document.getElementById('describes').innerHTML = describesHTML(l);
-  document.getElementById('source').innerHTML = sourceHTML(l);
   // Screen 2 — imported verbatim; byte-identical to the experiential condition.
   document.getElementById('intro-panel').innerHTML = introHTML(l);
-  // "?" help + "i" info — both from the shared modules, byte-identical to the
-  // experiential condition.
-  frame.render(l, { help: helpContent(l), info: infoContent(l) });
+  // "Information" panel + "?" help — from the shared modules, byte-identical to the
+  // experiential condition. The framing line and the data description + source
+  // citation (formerly printed in the header) now live inside the Information panel,
+  // so the figure itself stays clear.
+  const introLine = l === 'it'
+    ? 'L’Atlantico si muove come un sistema connesso. Esplora la sua circolazione attraverso profondità e tempo.'
+    : 'The Atlantic moves as a connected system. Explore its circulation across depth and time.';
+  const baseInfo = infoContent(l);
+  const info = { title: baseInfo.title, lines: [ introLine, describesHTML(l), sourceHTML(l), ...baseInfo.lines ] };
+  frame.render(l, { help: helpContent(l), info });
   if (bundleRef) buildFigure(bundleRef);             // re-label; numbers unchanged
 }
 

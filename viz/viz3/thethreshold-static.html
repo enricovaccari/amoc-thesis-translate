@@ -170,10 +170,7 @@ header h1{margin:0;font-family:var(--font-serif,serif);font-weight:400;font-size
   <div class="scene-label" id="scene-label"></div>
 </header>
 
-<div id="context-center">
-  <div id="describes"></div>
-  <div id="source"></div>
-</div>
+<!-- describes + source moved into the far-right "Information" panel (scene-frame.js) -->
 
 <div id="lang-toggle">
   <button id="lang-en" type="button" class="active">EN</button>
@@ -207,7 +204,7 @@ import { mountSceneFrame } from '../../shared/scene-frame.js';
 // and the SAME content as the experiential condition (shared/scene-frame.js), so
 // framing stays symmetric. Sits under the language toggle; hidden until screen 3.
 // (The driving question is asked once on the intro screen, not repeated here.)
-const frame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
+const frame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true, label: true });
 
 // Palette → CSS custom properties (single source of truth for scaffolding).
 const rootStyle = document.documentElement.style;
@@ -387,12 +384,13 @@ function applyLang(l){
   document.getElementById('splash-scene').innerHTML = T('splash_scene');
   document.getElementById('splash-cta').innerHTML = T('splash_cta');
   document.getElementById('load-error').innerHTML = T('load_error');
-  // Shared context (shared/context-threshold.js) — imported verbatim by both
-  // conditions; {n}/{y0}/{y1} are filled from the bundle, never typed.
-  document.getElementById('source').innerHTML = sourceHTML(l);
+  // Shared context (shared/context-threshold.js) — {n}/{y0}/{y1} filled from the
+  // bundle, never typed. The data description + source citation now live inside the
+  // far-right "Information" panel, not on the figure.
+  let describesTxt = '';
   if (bundleRef){
     const ENS = bundleRef.copernicus_ensemble;
-    document.getElementById('describes').innerHTML = describesHTML(l, {
+    describesTxt = describesHTML(l, {
       n: ENS.time.length,
       y0: ENS.time[0].slice(0, 4),
       y1: ENS.time[ENS.time.length - 1].slice(0, 4),
@@ -400,9 +398,12 @@ function applyLang(l){
   }
   // Screen 2 — imported verbatim; byte-identical to the experiential condition.
   document.getElementById('intro-panel').innerHTML = introHTML(l);
-  // "?" help + "i" info — both from the shared modules, byte-identical to the
-  // experiential condition.
-  frame.render(l, { help: helpContent(l), info: infoContent(l) });
+  // "Information" panel + "?" help — byte-identical to the experiential condition.
+  const baseInfo = infoContent(l);
+  const infoLines = [];
+  if (describesTxt) infoLines.push(describesTxt);
+  infoLines.push(sourceHTML(l), ...baseInfo.lines);
+  frame.render(l, { help: helpContent(l), info: { title: baseInfo.title, lines: infoLines } });
   if (bundleRef) buildFigure(bundleRef);             // re-label; numbers unchanged
 }
 // (No interactive controls in the static condition: the only switch is the
@@ -489,9 +490,7 @@ document.getElementById('intro-panel').addEventListener('click', (e) => {
   document.getElementById('intro').style.display = 'none';
   document.getElementById('figure').style.display = 'flex';
   bokehOn = false;                                   // stop the bokeh once the figure is shown
-  // reveal the describes/source header only now (not over the intro screen)
-  document.getElementById('context-center').style.display = 'block';
-  frame.show(true);                                  // the question stays for the whole scene
+  frame.show(true);                                  // reveal the Information / "?" cluster with the scene
 });
 document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
 document.getElementById('lang-it').addEventListener('click', () => applyLang('it'));

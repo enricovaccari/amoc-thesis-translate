@@ -287,10 +287,7 @@ body.pre-start #ui{opacity:0}
 
   <div id="hover-hint"></div>
 
-  <div id="context-top">
-    <div id="describes"></div>
-    <div id="source"></div>
-  </div>
+  <!-- describes + source moved into the far-right "Information" panel (scene-frame.js) -->
 
   <div id="controls">
     <div class="ctrl-group">
@@ -384,7 +381,7 @@ import { mountSceneFrame } from '../../shared/scene-frame.js';
 // condition (shared/scene-frame.js), so framing stays symmetric. Hidden until
 // screen 3; the driving question is asked once on the intro, not repeated here.
 // (Named sceneFrame — `frame` is already this file's animation-frame counter.)
-const sceneFrame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
+const sceneFrame = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true, label: true });
 
 const STR = {
 en: {
@@ -980,10 +977,10 @@ function applyLang(l){
   document.getElementById('replay-toggle').innerHTML= T('replay');
   document.getElementById('reset-toggle').innerHTML = T('reset');
   document.getElementById('load-error').innerHTML   = T('load_error');
-  document.getElementById('source').innerHTML = sourceHTML(l);
+  let describesTxt = '';
   if (dataLoaded){
     const y0 = ENS.time[0].slice(0, 4), y1 = ENS.time[N - 1].slice(0, 4);
-    document.getElementById('describes').innerHTML = describesHTML(l, { n: N, y0, y1 });
+    describesTxt = describesHTML(l, { n: N, y0, y1 });
     document.getElementById('reading-box').innerHTML =
       readingLines(l, { y0, y1 }).map(x => '<div class="read-line">' + x + '</div>').join('') +
       // encoding legend (§8): a clear VISUAL legend for the filled band — a
@@ -1002,9 +999,14 @@ function applyLang(l){
   const introScr = document.getElementById('intro-screen');
   if (introScr.style.display === 'flex')
     introScr.querySelector('.panel').innerHTML = introHTML(l);
-  // Persistent question + "?" help — both strings come from the shared modules,
-  // so both are byte-identical to the static condition.
-  sceneFrame.render(l, { help: helpContent(l), info: infoContent(l) });
+  // "Information" panel + "?" help — both come from the shared modules, so both are
+  // byte-identical to the static condition. The data description + source citation
+  // now live in the far-right Information panel, not on the figure.
+  const baseInfo = infoContent(l);
+  const infoLines = [];
+  if (describesTxt) infoLines.push(describesTxt);
+  infoLines.push(sourceHTML(l), ...baseInfo.lines);
+  sceneFrame.render(l, { help: helpContent(l), info: { title: baseInfo.title, lines: infoLines } });
   setPlaying(playing);
   refreshSoundBtn();
 }
