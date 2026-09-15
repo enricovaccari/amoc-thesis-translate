@@ -87,11 +87,6 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 #orient .lat{max-width:210px;margin:4px auto 0;line-height:1.4;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;opacity:.5;text-transform:uppercase}
 /* Atmospheric tagline — ONE line, left-aligned in the upper-left identity stack
    (under the credit), clear of the right-hand data block. */
-/* Width capped relative to the plot origin (axisX = 55% of W) so the line never
-   crosses into the curve at any viewport width; it wraps within the left band.
-   A soft scrim shadow keeps it legible over the particle field. */
-#intro-line{position:absolute;top:128px;left:50px;max-width:calc(50% - 100px);text-align:left;
-  font-size:11px;line-height:1.5;opacity:.72;text-shadow:0 1px 6px rgba(2,10,20,.9),0 0 3px rgba(2,10,20,.8)}
 [data-hint]{pointer-events:auto}
 
 /* === E. CONTROLLI (top-right) — hint just before the buttons === */
@@ -104,17 +99,8 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.2s}
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
 #lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
-/* Shared context (describes + source) — upper-right, below the selector and
-   the EN/IT toggle */
-/* Sits on the language-toggle row, to its LEFT — clear of both the toggle
-   (right) and the orientation compass (above, centre). */
-/* Data block + language toggle sit on the SAME visual level as the orientation
-   compass (top:48), forming one clean top row. */
-#context-top{position:absolute;top:48px;right:170px;width:380px;text-align:left;pointer-events:none}
-#context-top #describes{font-family:ui-monospace,monospace;font-size:11px;line-height:1.6;
-  color:var(--ink-soft);letter-spacing:.4px;text-shadow:0 1px 6px rgba(2,10,20,.9),0 0 3px rgba(2,10,20,.8)}
-#context-top #source{margin-top:8px;font-family:ui-monospace,monospace;font-size:8.5px;
-  letter-spacing:1.2px;color:var(--ink-soft);opacity:.8;text-shadow:0 1px 5px rgba(2,10,20,.9)}
+/* (The on-figure context block #context-top was retired — its describes + source
+   text now lives in the far-right "Information" panel, shared/scene-frame.js.) */
 #howto{max-width:200px;margin-right:14px;text-align:right;font-size:10px;line-height:1.5;letter-spacing:.5px;opacity:.5;font-style:italic}
 #conditions button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,0.1);color:var(--ink);padding:10px 18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:2px;cursor:pointer;transition:.3s}
 #conditions button.active{background:var(--ink);color:var(--abyss);font-weight:700}
@@ -336,15 +322,10 @@ body.pre-start #ui{opacity:0}
     <div class="lat">Atlantic overturning section &middot; 26.5&deg;N &middot; RAPID array</div>
   </div>
 
-  <div id="intro-line">The Atlantic moves as a connected system. Explore how circulation changes across conditions and depths.</div>
-
   <!-- No mode selector: the Experiential condition is permanently enabled.
-       Shared context blocks (shared/context-column.js) — identical wording to the
-       static condition. -->
-  <div id="context-top">
-    <div id="describes"></div>
-    <div id="source"></div>
-  </div>
+       The framing line and the shared context (describes + source) are no longer
+       printed on the figure — they live in the far-right "Information" panel
+       (shared/scene-frame.js), keeping the canvas clear. -->
 
   <div id="readouts">
     <div id="ro-pair">
@@ -439,7 +420,7 @@ window.LA_CONTEXT = { describesHTML, sourceHTML, helpContent, infoContent };
 // (the neutral Ψ background lives in "?"). Positioned top-right below the EN/IT
 // toggle, IDENTICAL to the other scenes (one coherent system). The old separate
 // inline readout "i" has been retired in favour of this single cluster.
-window.LA_FRAME = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true });
+window.LA_FRAME = mountSceneFrame({ pos: { top: '72px', right: '40px' }, hasInfo: true, label: true });
 window.LA_CORE = { loadBundle, deriveAnchors, velocity, reconstructProfile, COL, INK, FONT };
 window.COL = COL;                    // canvas code reads the shared palette
 if (window.__relang) window.__relang();
@@ -1562,13 +1543,9 @@ function applyLang(l){
   document.querySelector('.splash-click').innerHTML = T('splash_click');
   document.querySelector('.scene-label').innerHTML  = T('scene_label');
   document.querySelector('#orient .lat').innerHTML  = T('orient_lat');
-  document.getElementById('intro-line').innerHTML   = T('intro_line');
-  // Shared context (shared/context-column.js, via the module bridge) — identical
-  // wording to the study files. Empty until the module has loaded.
-  if (window.LA_CONTEXT){
-    document.getElementById('describes').innerHTML = window.LA_CONTEXT.describesHTML(l);
-    document.getElementById('source').innerHTML    = window.LA_CONTEXT.sourceHTML(l);
-  }
+  // The framing line and the data description + source now live inside the
+  // "Information" panel (composed in the LA_FRAME.render call below), keeping the
+  // figure itself clear of prose.
   document.getElementById('lbl-seldepth').innerHTML = T('sel_depth');
   document.getElementById('lbl-amoc').innerHTML     = T('amoc_int');
   document.querySelector('.sv-note').innerHTML      = T('sv_note');
@@ -1583,10 +1560,20 @@ function applyLang(l){
   const introScr = document.getElementById('intro-screen');
   if (introScr.style.display === 'flex' && window.LA_INTRO)
     introScr.querySelector('.panel').innerHTML = window.LA_INTRO.introHTML(l);
-  // "i" info + "?" help — content from the shared module, byte-identical to
-  // column-static.html. Empty until the module bridge has loaded.
-  if (window.LA_FRAME && window.LA_CONTEXT)
-    window.LA_FRAME.render(l, { help: window.LA_CONTEXT.helpContent(l), info: window.LA_CONTEXT.infoContent(l) });
+  // "Information" panel + "?" help — content from the shared module, byte-identical
+  // to column-static.html. The Information panel now also carries the framing line
+  // and the data description + source citation that used to sit on the figure, so
+  // the canvas stays clear. Empty until the module bridge has loaded.
+  if (window.LA_FRAME && window.LA_CONTEXT){
+    const base = window.LA_CONTEXT.infoContent(l);
+    const info = { title: base.title, lines: [
+      T('intro_line'),
+      window.LA_CONTEXT.describesHTML(l),
+      window.LA_CONTEXT.sourceHTML(l),
+      ...base.lines
+    ]};
+    window.LA_FRAME.render(l, { help: window.LA_CONTEXT.helpContent(l), info });
+  }
   setPlaying(playing);                             // refresh PAUSE/RESUME label
   refreshSoundBtn();                               // refresh SOUND ON/OFF label
   if (dataLoaded){

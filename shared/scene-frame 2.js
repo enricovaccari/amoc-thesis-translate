@@ -30,8 +30,8 @@
 
 /** UI chrome for the affordances themselves — labels only, never content. */
 export const FRAME = {
-  en: { helpBtn: 'How to read this scene', infoBtn: 'About this visualization', close: 'Close' },
-  it: { helpBtn: 'Come si legge questa scena', infoBtn: 'Informazioni sulla visualizzazione', close: 'Chiudi' },
+  en: { helpBtn: 'How to read this scene', infoBtn: 'About this visualization', infoLabel: 'Information', close: 'Close' },
+  it: { helpBtn: 'Come si legge questa scena', infoBtn: 'Informazioni sulla visualizzazione', infoLabel: 'Informazioni', close: 'Chiudi' },
 };
 
 const CSS = `
@@ -42,6 +42,12 @@ const CSS = `
   font-size:12px;letter-spacing:0;cursor:none;pointer-events:auto;opacity:.85;
   transition:opacity .25s,background .25s,border-color .25s}
 .sf-btn.info-i{font-family:Georgia,'Times New Roman',serif;font-style:italic}
+/* Labeled "Information" affordance (opt-in via label:true) — a small pill showing
+   the localized word, so the panel's purpose is unmistakable. Paired with the "?"
+   help button beside it. */
+.sf-btn.sf-labeled{width:auto;height:22px;padding:0 13px;border-radius:11px;font-style:normal;
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;line-height:1;
+  display:inline-flex;align-items:center;white-space:nowrap}
 .sf-btn:hover,.sf-btn.open{opacity:1;background:rgba(255,179,92,.22);border-color:var(--beacon,#ffb35c)}
 
 .sf-panel{position:fixed;z-index:120;visibility:hidden;opacity:0;transform:translateY(-4px);
@@ -79,7 +85,7 @@ const CSS = `
  *   content — { help:{title,lines[]}, info:{title,lines[]}|null }.
  */
 export function mountSceneFrame(opts = {}) {
-  const { pos = { top: '70px', right: '40px' }, hasInfo = false, infoUrl = null } = opts;
+  const { pos = { top: '70px', right: '40px' }, hasInfo = false, infoUrl = null, label = false } = opts;
 
   if (!document.getElementById('scene-frame-css')) {
     const st = document.createElement('style');
@@ -106,8 +112,8 @@ export function mountSceneFrame(opts = {}) {
   if (hasInfo) {
     infoBtn = make('button', 'scene-info-btn', cluster);
     infoBtn.type = 'button';
-    infoBtn.className = 'sf-btn info-i';
-    infoBtn.textContent = 'i';
+    infoBtn.className = label ? 'sf-btn sf-labeled' : 'sf-btn info-i';
+    if (!label) infoBtn.textContent = 'i';   // labeled text is set (localized) in render()
   }
   const helpBtn = make('button', 'scene-help-btn', cluster);
   helpBtn.type = 'button';
@@ -181,7 +187,8 @@ export function mountSceneFrame(opts = {}) {
     render(lang, content) {
       const t = FRAME[lang] || FRAME.en;
       helpBtn.title = t.helpBtn; helpBtn.setAttribute('aria-label', t.helpBtn);
-      if (infoBtn) { infoBtn.title = t.infoBtn; infoBtn.setAttribute('aria-label', t.infoBtn); }
+      if (infoBtn) { infoBtn.title = t.infoBtn; infoBtn.setAttribute('aria-label', t.infoBtn);
+        if (label) infoBtn.textContent = t.infoLabel; }
       if (content && content.help) fillPanel(helpPanel, t, content.help, t.close);
       if (infoPanel && content && content.info) fillPanel(infoPanel, t, content.info, t.close);
     },
