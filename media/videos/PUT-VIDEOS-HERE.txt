@@ -1,0 +1,5 @@
+Record the three ~10 s experiential clips and save them here as:
+  scene1-column.mp4
+  scene2-engine.mp4
+  scene3-threshold.mp4
+See ../README.md for the one-minute recording steps (Win + Alt + R).
