@@ -75,8 +75,10 @@ header h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-weight:400;f
 #lang-toggle button:hover{background:rgba(255,255,255,.12)}
 #lang-toggle button.active{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
 
-/* Enhanced Experience (BETA) — demo only, C3 only */
-#enh-toggle{position:absolute;top:140px;right:50px;pointer-events:auto;z-index:60;display:none;
+/* Enhanced Experience (BETA) — demo only, C3 only. Sits on the EN/IT row, to its
+   left (right:156 = past the 92px toggle + a clear gap), so it never overlaps the
+   language buttons or the Information cluster below. */
+#enh-toggle{position:absolute;top:124px;right:156px;pointer-events:auto;z-index:60;display:none;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:var(--ink);
   padding:6px 12px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:2px;cursor:none;transition:.2s}
 #enh-toggle:hover{border-color:var(--beacon);color:var(--beacon)}
