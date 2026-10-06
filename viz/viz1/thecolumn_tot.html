@@ -578,18 +578,19 @@ const yOfDepth = (d, L) => L.topY + (d / DMAX) * L.h;
 // Vertical progression: abyss (near-black blue) → deep ocean blue → faintly
 // warm, sunset-lit surface. Identical in C1 / C2 / C3.
 // Cached per canvas height — rebuilding a gradient every frame is wasted work.
-let bgCache = null, bgCacheH = 0;
+let bgCache = null, bgCacheH = 0, bgCacheW = 0;
 let gridCache = null, gridCacheH = 0;              // C2/C3 grid gradient (per-height cache)
 let curveCache = null, curveCacheH = 0;            // Ψ-curve colour gradient (per-height cache)
 function bgGrad(){
-  if (bgCache && bgCacheH === H) return bgCache;
-  const gr = gb.createLinearGradient(0, 0, 0, H);
-  gr.addColorStop(0.00, '#221b21');   // surface — very tenuous warm dusk light
-  gr.addColorStop(0.10, '#0d1521');   // upper ocean (cool)
-  gr.addColorStop(0.45, '#050e1a');   // deep ocean — very dark blue
-  gr.addColorStop(0.78, '#02060e');   // deeper transition
-  gr.addColorStop(1.00, '#010308');   // abyss — extremely dark blue, near black
-  bgCache = gr; bgCacheH = H;
+  if (bgCache && bgCacheH === H && bgCacheW === W) return bgCache;
+  // Shared "Living Atlantic" background — identical to Scenes II & III: a soft
+  // radial glow in the upper-middle fading to the abyss at the edges, so all three
+  // scenes sit on exactly the same ground.
+  const gr = gb.createRadialGradient(W/2, H*0.42, 0, W/2, H*0.42, Math.max(W, H)*0.75);
+  gr.addColorStop(0.00, '#0a2136');
+  gr.addColorStop(0.45, '#061524');
+  gr.addColorStop(1.00, '#010811');
+  bgCache = gr; bgCacheH = H; bgCacheW = W;
   return gr;
 }
 
@@ -992,9 +993,19 @@ function draw(){
             ? n - 1
             : Math.min(n - 1, Math.max(prev + 1, Math.round(n * (b + 1) / TAIL_BANDS)));
           const path = tailP[kf + b] || (tailP[kf + b] = new Path2D());
+          // Smooth the sampled points into a flowing curve — quadratic Béziers
+          // through the midpoint of each segment, with the samples as control
+          // points — so the tail reads as one continuous line, never as angular
+          // chords between sparse samples.
           path.moveTo(p.hist[prev*2], p.hist[prev*2+1]);
-          for (let k = prev + 1; k <= end; k++) path.lineTo(p.hist[k*2], p.hist[k*2+1]);
-          if (b === TAIL_BANDS - 1) path.lineTo(p.x, y);
+          for (let k = prev + 1; k < end; k++){
+            const mx = (p.hist[k*2]     + p.hist[(k+1)*2])     * 0.5;
+            const my = (p.hist[k*2 + 1] + p.hist[(k+1)*2 + 1]) * 0.5;
+            path.quadraticCurveTo(p.hist[k*2], p.hist[k*2 + 1], mx, my);
+          }
+          const hx = (b === TAIL_BANDS - 1) ? p.x : p.hist[end*2];
+          const hy = (b === TAIL_BANDS - 1) ? y   : p.hist[end*2 + 1];
+          path.quadraticCurveTo(p.hist[end*2], p.hist[end*2 + 1], hx, hy);
           prev = end;
         }
       }
